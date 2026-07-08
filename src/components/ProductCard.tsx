@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, Star } from 'lucide-react';
+import { Heart, Star, Sparkles } from 'lucide-react';
 
 export interface Product {
   id: string | number;
@@ -17,12 +17,25 @@ export interface Product {
   matchPercentage?: number;
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, onTryOn }: { product: Product; onTryOn?: (product: Product) => void }) {
   return (
-    <Link href={`/product/${product.id}`} className="group flex flex-col bg-white border border-gray-100 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
+    <div className="group relative flex flex-col bg-white border border-gray-100 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 h-full">
       {/* Image Area */}
-      <div className="w-full aspect-[4/5] bg-gray-50 relative p-4 mb-2">
-        <button className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-gray-300 hover:text-drip-coral z-20 transition-colors" aria-label="Add to wishlist">
+      <div className="w-full aspect-[4/5] bg-gray-50 relative p-4 mb-2 overflow-hidden">
+        {/* Link for the main image area */}
+        <Link href={`/product/${product.id}`} className="absolute inset-0 z-0">
+          <Image src={product.image} alt={product.name} fill className="object-cover mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-500" />
+        </Link>
+        
+        {/* Wishlist Button */}
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-gray-300 hover:text-drip-coral z-20 transition-colors" 
+          aria-label="Add to wishlist"
+        >
           <Heart className="w-4 h-4" />
         </button>
         
@@ -39,11 +52,24 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        <Image src={product.image} alt={product.name} fill className="object-cover mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-500" />
+        {/* Try On Instant Button (overlay on hover) */}
+        {onTryOn && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onTryOn(product);
+            }}
+            className="absolute inset-x-4 top-1/2 -translate-y-1/2 bg-drip-navy/95 text-white py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-drip-coral transition-all flex items-center justify-center space-x-2 z-20 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300 shadow-xl"
+          >
+            <Sparkles className="w-3.5 h-3.5 fill-white" />
+            <span>Try On Instantly</span>
+          </button>
+        )}
       </div>
 
       {/* Product Info */}
-      <div className="px-4 pb-2 flex-grow flex flex-col">
+      <Link href={`/product/${product.id}`} className="px-4 pb-2 flex-grow flex flex-col z-10">
         <h4 className="text-[10px] font-black text-black uppercase tracking-widest mb-1">{product.brand}</h4>
         <p className="text-[13px] font-medium text-gray-600 leading-snug line-clamp-2 h-9 mb-2">{product.name}</p>
         
@@ -51,14 +77,14 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className="text-sm font-black text-black">{product.price}</span>
           {product.originalPrice && <span className="text-xs text-gray-400 line-through font-medium">{product.originalPrice}</span>}
         </div>
-      </div>
+      </Link>
 
-      {/* AI Fit Hint Overlay (Visible on hover) */}
-      <div className="absolute top-2 right-2 hidden group-hover:block transition-all z-30">
+      {/* AI Fit Hint Overlay */}
+      <div className="absolute top-2 right-2 z-20 pointer-events-none">
         <div className="bg-drip-green/90 backdrop-blur-sm text-white px-2 py-1 rounded text-[8px] font-bold uppercase tracking-widest shadow-sm">
           {product.matchPercentage || 92}% Match
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

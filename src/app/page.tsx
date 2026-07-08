@@ -7,6 +7,7 @@ import { Search, Heart, User, ShoppingBag, Menu, Sparkles, Truck, ShieldCheck, C
 import ProductCard from '../components/ProductCard';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import AIFittingRoomModal from '../components/AIFittingRoomModal';
 import { PRODUCTS } from '../data/products';
 
 // ═══════════════════════════════════════════════════════════════
@@ -14,9 +15,9 @@ import { PRODUCTS } from '../data/products';
 // ═══════════════════════════════════════════════════════════════
 
 const HERO_SLIDES = [
-  { id: 1, title: 'SHOP YOUR\nWARDROBE NOW!', sub: "You didn't come this far to stop", cta: 'START SHOPPING', img: '/images/hero/hero-clean.png' },
-  { id: 2, title: 'AUTUMN\nCOLLECTION', sub: 'New season. New you. New drip.', cta: 'SHOP NOW', img: '/images/hero/collection-banner.png' },
-  { id: 3, title: 'SUMMER\nESSENTIALS', sub: 'Light fabrics. Bold choices.', cta: 'EXPLORE', img: '/images/hero/mens_collection_scrollbar.jpeg' },
+  { id: 1, title: 'VIRTUAL TRY-ON\nPLAYGROUND', sub: 'Drape curated luxury drops directly on your digital double', cta: 'LAUNCH FITTING ROOM', img: '/images/hero/luxury_hero_vton.png' },
+  { id: 2, title: 'AUTUMN\nFITROOM', sub: 'Cashmere coats and warm layers matched to your body shape', cta: 'DRAPE AUTUMN LOOKS', img: '/images/hero/luxury_hero_autumn.png' },
+  { id: 3, title: 'SUMMER\nDIGITAL DOUBLE', sub: 'Calibrate size DNA & drape light premium resortwear', cta: 'CALIBRATE SIZE DNA', img: '/images/hero/luxury_hero_summer.png' },
 ];
 
 const MAIN_COLLECTIONS = [
@@ -94,6 +95,7 @@ const CollectionGrid = ({ collections, dark = false }: { collections: any[], dar
 
 export default function Home() {
   const [heroSlide, setHeroSlide] = useState(0);
+  const [tryOnProduct, setTryOnProduct] = useState<any>(null);
 
   useEffect(() => {
     const t = setInterval(() => setHeroSlide((s) => (s + 1) % HERO_SLIDES.length), 5000);
@@ -101,6 +103,17 @@ export default function Home() {
   }, []);
 
   const slide = HERO_SLIDES[heroSlide];
+
+  // Helper to open default try-on or target flow
+  const handleHeroCTA = (slideId: number) => {
+    if (slideId === 3) {
+      window.location.href = '/avatar-studio';
+    } else {
+      // Open fitting room with a popular product
+      const defaultProduct = PRODUCTS.find(p => p.id === 'm1') || PRODUCTS[0];
+      setTryOnProduct(defaultProduct);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#FAF9F7] font-sans text-gray-900">
@@ -114,17 +127,20 @@ export default function Home() {
         {HERO_SLIDES.map((s, i) => (
           <div key={s.id} className={`absolute inset-0 transition-opacity duration-1000 ${i === heroSlide ? 'opacity-100' : 'opacity-0'}`}>
             <Image src={s.img} alt={s.title} fill className="object-cover object-top" priority={i === 0} />
-            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="absolute inset-0 bg-black/55"></div>
           </div>
         ))}
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 z-10">
-          <h1 key={heroSlide} className="text-white text-5xl md:text-7xl lg:text-[120px] xl:text-[140px] font-black leading-[0.85] tracking-tighter uppercase mb-8 whitespace-pre-line animate-text-reveal font-display" style={{ textShadow: '0 4px 30px rgba(0,0,0,0.4)' }}>
+          <h1 key={heroSlide} className="text-white text-5xl md:text-7xl lg:text-[100px] xl:text-[120px] font-black leading-[0.85] tracking-tighter uppercase mb-8 whitespace-pre-line animate-text-reveal font-display" style={{ textShadow: '0 4px 30px rgba(0,0,0,0.4)' }}>
             {slide.title}
           </h1>
           <p className="text-white/80 text-xs md:text-sm font-bold tracking-[0.35em] uppercase mb-12 animate-fade-in-up" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.4)' }}>{slide.sub}</p>
-          <Link href="/category" className="bg-white text-black px-14 py-4 text-[11px] font-black uppercase tracking-[0.25em] hover:bg-drip-coral hover:text-white transition-all rounded-full animate-fade-in-up shadow-xl">
+          <button 
+            onClick={() => handleHeroCTA(slide.id)} 
+            className="bg-white text-black px-14 py-4 text-[11px] font-black uppercase tracking-[0.25em] hover:bg-drip-coral hover:text-white transition-all rounded-full animate-fade-in-up shadow-xl cursor-pointer"
+          >
             {slide.cta}
-          </Link>
+          </button>
         </div>
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
           {HERO_SLIDES.map((_, i) => (
@@ -223,7 +239,7 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-5 md:px-12">
           <SectionHeading title="SHOP MEN'S" align="center" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
-            {MENS_PRODUCTS.map(p => <ProductCard key={p.id} product={p as any} />)}
+            {MENS_PRODUCTS.map(p => <ProductCard key={p.id} product={p as any} onTryOn={setTryOnProduct} />)}
           </div>
           <div className="mt-12 text-center">
             <Link href="/collections/mens" className="inline-block bg-black text-white px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-drip-coral transition-colors shadow-lg">View All Men's</Link>
@@ -236,7 +252,7 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-5 md:px-12">
           <SectionHeading title="SHOP WOMEN'S" align="center" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
-            {WOMENS_PRODUCTS.map(p => <ProductCard key={p.id} product={p as any} />)}
+            {WOMENS_PRODUCTS.map(p => <ProductCard key={p.id} product={p as any} onTryOn={setTryOnProduct} />)}
           </div>
           <div className="mt-12 text-center">
             <Link href="/collections/womens" className="inline-block bg-black text-white px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-drip-coral transition-colors shadow-lg">View All Women's</Link>
@@ -323,6 +339,18 @@ export default function Home() {
       </section>
 
       <Footer />
+
+      {/* ══════ VIRTUAL FITTING ROOM MODAL ══════ */}
+      {tryOnProduct && (
+        <AIFittingRoomModal
+          isOpen={!!tryOnProduct}
+          onClose={() => setTryOnProduct(null)}
+          productImage={tryOnProduct.image}
+          brand={tryOnProduct.brand}
+          name={tryOnProduct.name}
+          price={tryOnProduct.price ? parseInt(tryOnProduct.price.replace(/[^\d]/g, ''), 10) : undefined}
+        />
+      )}
 
       {/* ══════ FLOATING AI ══════ */}
       <div className="fixed bottom-6 right-6 z-[70]">
