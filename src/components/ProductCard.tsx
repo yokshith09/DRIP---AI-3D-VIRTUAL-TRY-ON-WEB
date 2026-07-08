@@ -52,7 +52,7 @@ export default function ProductCard({ product, onTryOn }: { product: Product; on
           </div>
         )}
 
-        {/* Try On Instant Button (overlay on hover) */}
+        {/* Try On Instant Button (overlay sliding up from bottom) */}
         {onTryOn && (
           <button
             onClick={(e) => {
@@ -60,9 +60,9 @@ export default function ProductCard({ product, onTryOn }: { product: Product; on
               e.stopPropagation();
               onTryOn(product);
             }}
-            className="absolute inset-x-4 top-1/2 -translate-y-1/2 bg-drip-navy/95 text-white py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-drip-coral transition-all flex items-center justify-center space-x-2 z-20 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300 shadow-xl"
+            className="absolute inset-x-0 bottom-0 bg-white/90 backdrop-blur-md text-black py-3.5 text-[9px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center justify-center space-x-2 z-20 opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0 duration-300 border-t border-gray-200/50"
           >
-            <Sparkles className="w-3.5 h-3.5 fill-white" />
+            <Sparkles className="w-3.5 h-3.5 text-drip-coral fill-drip-coral animate-pulse" />
             <span>Try On Instantly</span>
           </button>
         )}

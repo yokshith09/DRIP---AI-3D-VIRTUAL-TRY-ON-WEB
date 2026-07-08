@@ -15,9 +15,9 @@ import { PRODUCTS } from '../data/products';
 // ═══════════════════════════════════════════════════════════════
 
 const HERO_SLIDES = [
-  { id: 1, title: 'VIRTUAL TRY-ON\nPLAYGROUND', sub: 'Drape curated luxury drops directly on your digital double', cta: 'LAUNCH FITTING ROOM', img: '/images/hero/luxury_hero_vton.png' },
-  { id: 2, title: 'AUTUMN\nFITROOM', sub: 'Cashmere coats and warm layers matched to your body shape', cta: 'DRAPE AUTUMN LOOKS', img: '/images/hero/luxury_hero_autumn.png' },
-  { id: 3, title: 'SUMMER\nDIGITAL DOUBLE', sub: 'Calibrate size DNA & drape light premium resortwear', cta: 'CALIBRATE SIZE DNA', img: '/images/hero/luxury_hero_summer.png' },
+  { id: 1, title: 'THE NEW ERA\nOF FITTING', sub: 'VIRTUAL DRAPING AND BODY MAPPING AT THE SPEED OF LIGHT', cta: 'ENTER ATELIER', img: '/images/hero/luxury_hero_vton.png' },
+  { id: 2, title: 'ANATOMY OF\nTHE SILHOUETTE', sub: 'FINE WOOL COATS AND TAILORED SUITS CURATED FOR YOUR ANATOMY', cta: 'TRY ON THE EDIT', img: '/images/hero/luxury_hero_autumn.png' },
+  { id: 3, title: 'STYLE DNA\nFORMULATION', sub: 'CALIBRATE SIZING PROFILE & DISCOVER BESPOKE RESORTWEAR', cta: 'CALIBRATE SIZE', img: '/images/hero/luxury_hero_summer.png' },
 ];
 
 const MAIN_COLLECTIONS = [
@@ -130,7 +130,7 @@ export default function Home() {
         {HERO_SLIDES.map((s, i) => (
           <div key={s.id} className={`absolute inset-0 transition-opacity duration-1000 ${i === heroSlide ? 'opacity-100' : 'opacity-0'}`}>
             <Image src={s.img} alt={s.title} fill className="object-cover object-top" priority={i === 0} />
-            <div className="absolute inset-0 bg-black/55"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/75"></div>
           </div>
         ))}
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 z-10">

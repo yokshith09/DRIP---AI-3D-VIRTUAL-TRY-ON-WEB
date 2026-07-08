@@ -165,11 +165,11 @@ export default function ProductDetail() {
       <div className="max-w-[1440px] mx-auto px-4 md:px-12 pt-8 flex flex-col lg:flex-row gap-12">
         
         {/* Gallery Section */}
-        <div className="flex-grow">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex-grow max-w-[700px] mx-auto w-full">
+           <div className="flex flex-col gap-6">
               {images.map((img, i) => (
-                <div key={i} className={`relative aspect-[3/4] bg-gray-50 overflow-hidden rounded-2xl border border-gray-50 ${i === 0 ? 'md:col-span-2 aspect-video' : ''}`}>
-                   <Image src={img} alt={`${product.name} view ${i + 1}`} fill className="object-cover mix-blend-multiply opacity-95" priority={i === 0} />
+                <div key={i} className="relative aspect-[3/4] max-h-[650px] bg-gray-50 overflow-hidden rounded-2xl border border-gray-100 shadow-xs">
+                   <Image src={img} alt={`${product.name} view ${i + 1}`} fill className="object-cover mix-blend-multiply opacity-95 hover:scale-102 transition-transform duration-700" priority={i === 0} />
                 </div>
               ))}
            </div>
