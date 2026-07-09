@@ -1,5 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { ChevronRight, Package, Heart, RefreshCcw, Bell, Settings, Ruler, Sparkles, MapPin, Coins, LogOut, ChevronLeft, User, MessageCircle, ShoppingBag, Menu, Search, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -29,6 +32,48 @@ const MENU_ITEMS = [
 ];
 
 export default function Profile() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        router.push('/login');
+      } else {
+        setUser(currentUser);
+        setLoading(false);
+      }
+    };
+    checkUser();
+  }, [router]);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex flex-col justify-between">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.25em] animate-pulse block">Verifying Session...</span>
+            <div className="w-12 h-0.5 bg-[#7A0C16] mx-auto animate-bounce"></div>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  const userDisplayName = user?.email?.split('@')[0] || 'Member';
+
   return (
     <main className="min-h-screen bg-gray-50 pb-32">
       <Navbar />
@@ -38,13 +83,13 @@ export default function Profile() {
         {/* Profile Card Header */}
         <div className="bg-white border border-gray-100 p-8 flex flex-col md:flex-row items-center md:justify-between shadow-sm mb-12">
            <div className="flex items-center mb-6 md:mb-0">
-              <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl font-display font-black text-black border-4 border-gray-50 shadow-inner">
-                 YJ
+              <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl font-display font-black text-black border-4 border-gray-50 shadow-inner uppercase">
+                 {userDisplayName.slice(0, 2)}
               </div>
-              <div className="ml-8">
-                 <h1 className="text-3xl font-display font-medium text-black italic">Yoo Jae-Suk</h1>
-                 <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">ELITE MEMBER • 240 COINS</p>
-                 <div className="mt-4 flex space-x-4">
+              <div className="ml-8 text-center md:text-left">
+                 <h1 className="text-3xl font-display font-medium text-black italic capitalize">{userDisplayName}</h1>
+                 <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">ELITE MEMBER • {user?.email}</p>
+                 <div className="mt-4 flex space-x-4 justify-center md:justify-start">
                     <button className="text-[10px] font-black text-[#0055A4] uppercase tracking-widest hover:underline decoration-2">Edit Profile</button>
                     <button className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:underline decoration-2">Privacy Policy</button>
                  </div>
@@ -52,9 +97,9 @@ export default function Profile() {
            </div>
            
            <div className="flex flex-col items-center md:items-end space-y-2">
-              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">REGISTERED SINCE: MAR 2026</div>
+              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">REGISTERED SECURELY VIA SUPABASE</div>
               <button className="bg-black text-white px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-800 transition-all">
-                 MEMBERSHIP STATUS
+                 ACTIVE PROFILE
               </button>
            </div>
         </div>
@@ -84,7 +129,10 @@ export default function Profile() {
             </div>
           ))}
 
-          <button className="mt-12 w-full py-5 border-y border-gray-200 text-xs font-black text-[#FF4D4D] uppercase tracking-[0.3em] hover:bg-[#FFF5F5] transition-all flex items-center justify-center space-x-3">
+          <button 
+            onClick={handleSignOut}
+            className="mt-12 w-full py-5 border-y border-gray-200 text-xs font-black text-[#FF4D4D] uppercase tracking-[0.3em] hover:bg-[#FFF5F5] transition-all flex items-center justify-center space-x-3"
+          >
              <LogOut className="w-5 h-5" />
              <span>Secure Sign Out</span>
           </button>

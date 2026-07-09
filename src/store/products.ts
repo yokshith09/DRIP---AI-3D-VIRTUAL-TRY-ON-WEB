@@ -22,7 +22,7 @@ export const useProductStore = create<ProductStore>()(
       resetProducts: () => set({ products: STATIC_PRODUCTS })
     }),
     {
-      name: 'drip-products-catalog'
+      name: 'drip-products-catalog-v4'
     }
   )
 );
