@@ -312,7 +312,7 @@ export default function AvatarStudio() {
             </div>
 
             {/* Actions for fitted items */}
-            {fittingStatus === 'done' && activeProduct && (
+            {activeProduct && (
               <div className="absolute bottom-8 left-8 right-8 md:left-1/2 md:right-auto md:-translate-x-1/2 z-20 max-w-sm w-full bg-black/85 backdrop-blur border border-white/10 p-4 rounded-2xl flex items-center justify-between shadow-2xl">
                 <div>
                   <h4 className="text-xs font-bold text-white/60 uppercase">{activeProduct.brand}</h4>

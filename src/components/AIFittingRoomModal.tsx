@@ -517,21 +517,44 @@ export default function AIFittingRoomModal({
                       </button>
                     </div>
                   </div>
-                ) : userPhoto && status === 'idle' ? (
-                  <button 
-                    onClick={triggerVirtualFitting}
-                    className="w-full bg-drip-navy hover:bg-black text-white py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs transition-colors flex justify-center items-center space-x-2"
-                  >
-                    <Sparkles className="w-4 h-4 fill-white" />
-                    <span>Begin Virtual Fitting</span>
-                  </button>
                 ) : (
-                  <button 
-                    disabled 
-                    className="w-full bg-gray-200 text-gray-400 py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs cursor-not-allowed text-center"
-                  >
-                    Upload Photo to Fit Outfit
-                  </button>
+                  <>
+                    {userPhoto && status === 'idle' ? (
+                      <button 
+                        onClick={triggerVirtualFitting}
+                        className="w-full bg-drip-navy hover:bg-black text-white py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs transition-colors flex justify-center items-center space-x-2"
+                      >
+                        <Sparkles className="w-4 h-4 fill-white" />
+                        <span>Begin Virtual Fitting</span>
+                      </button>
+                    ) : (
+                      <button 
+                        disabled 
+                        className="w-full bg-gray-200 text-gray-400 py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs cursor-not-allowed text-center"
+                      >
+                        Upload Photo to Fit Outfit
+                      </button>
+                    )}
+                    
+                    <button 
+                      onClick={handleAddToBagWithFit}
+                      className={`w-full py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs transition-all flex justify-center items-center space-x-2 border ${
+                        cartAdded ? 'bg-drip-green border-drip-green text-white' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {cartAdded ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          <span>Added to Bag!</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag className="w-4 h-4" />
+                          <span>Add to Bag</span>
+                        </>
+                      )}
+                    </button>
+                  </>
                 )}
               </div>
 
