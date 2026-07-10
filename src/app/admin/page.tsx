@@ -11,9 +11,13 @@ import Image from 'next/image';
 import { Trash2, Plus, LogOut, Package, Search, Tag, Settings, SlidersHorizontal, Sparkles, Check, Edit2 } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const { products, addProduct, deleteProduct, resetProducts } = useProductStore();
+  const { products, addProduct, updateProduct, deleteProduct, resetProducts } = useProductStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+  
+  // Edit Mode state
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string | null>(null);
   
   // Form fields for adding product
   const [name, setName] = useState('');
@@ -48,7 +52,7 @@ export default function AdminDashboard() {
     router.push('/');
   };
 
-  // Add Product Submit
+  // Add or Edit Product Submit
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !brand || !price || !image) {
@@ -58,6 +62,29 @@ export default function AdminDashboard() {
 
     const priceNum = parseInt(price.replace(/[^\d]/g, ''), 10) || 1999;
     const originalPriceNum = Math.round(priceNum * 1.25);
+
+    if (editingProductId) {
+      updateProduct(editingProductId, {
+        category,
+        subcategory,
+        name,
+        brand,
+        price: `₹ ${priceNum.toLocaleString('en-IN')}`,
+        originalPrice: `₹ ${originalPriceNum.toLocaleString('en-IN')}`,
+        priceNumber: priceNum,
+        originalPriceNumber: originalPriceNum,
+        image,
+        images: [image],
+        fit,
+        material
+      });
+      setFormSuccess(true);
+      setTimeout(() => {
+        setFormSuccess(false);
+        cancelEdit();
+      }, 1500);
+      return;
+    }
 
     const newProduct: Product = {
       id: `admin-added-${Date.now()}`,
@@ -99,18 +126,43 @@ export default function AdminDashboard() {
     setTimeout(() => setFormSuccess(false), 3000);
   };
 
+  const handleEdit = (prod: Product) => {
+    setEditingProductId(prod.id);
+    setName(prod.name);
+    setBrand(prod.brand);
+    setPrice(prod.priceNumber.toString());
+    setImage(prod.image);
+    setCategory(prod.category as any);
+    setSubcategory(prod.subcategory as any);
+    setFit(prod.fit || '');
+    setMaterial(prod.material || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingProductId(null);
+    setName('');
+    setBrand('');
+    setPrice('');
+    setImage('');
+    setFit('Relaxed Fit');
+    setMaterial('Premium Cotton');
+  };
+
   const handleDelete = (id: string, prodName: string) => {
     if (confirm(`Are you sure you want to delete "${prodName}" from the store database?`)) {
       deleteProduct(id);
     }
   };
 
-  // Filter products based on search
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.subcategory.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter products based on search and category
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          p.subcategory.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategoryFilter ? p.subcategory === activeCategoryFilter : true;
+    return matchesSearch && matchesCategory;
+  });
 
   // Stats
   const shirtsCount = products.filter(p => p.subcategory === 'Shirts').length;
@@ -158,17 +210,25 @@ export default function AdminDashboard() {
         {/* Database Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           {[
-            { label: 'Shirts & Polos', count: shirtsCount, color: 'bg-drip-navy text-white' },
-            { label: 'Jeans Denim', count: jeansCount, color: 'bg-white border border-gray-150 text-black' },
-            { label: 'Cargo & Pants', count: pantsCount, color: 'bg-white border border-gray-150 text-black' },
-            { label: 'Sneakers Shoes', count: sneakersCount, color: 'bg-white border border-gray-150 text-black' },
-            { label: 'Accessories', count: accCount, color: 'bg-white border border-gray-150 text-black' }
-          ].map((stat, i) => (
-            <div key={i} className={`p-5 rounded-2xl shadow-xs ${stat.color} flex flex-col justify-between h-28`}>
-              <span className="text-[10px] font-black uppercase tracking-wider opacity-60">{stat.label}</span>
-              <span className="text-2xl font-display font-bold leading-none">{stat.count} items</span>
-            </div>
-          ))}
+            { label: 'Shirts & Polos', filterValue: 'Shirts', count: shirtsCount },
+            { label: 'Jeans Denim', filterValue: 'Jeans', count: jeansCount },
+            { label: 'Cargo & Pants', filterValue: 'Pants', count: pantsCount },
+            { label: 'Sneakers Shoes', filterValue: 'Sneakers', count: sneakersCount },
+            { label: 'Accessories', filterValue: 'Accessories', count: accCount }
+          ].map((stat, i) => {
+            const isActive = activeCategoryFilter === stat.filterValue;
+            const bgClass = isActive ? 'bg-drip-navy text-white ring-2 ring-black' : 'bg-white border border-gray-150 text-black hover:border-black';
+            return (
+              <button 
+                key={i} 
+                onClick={() => setActiveCategoryFilter(isActive ? null : stat.filterValue)}
+                className={`p-5 rounded-2xl shadow-xs ${bgClass} flex flex-col justify-between h-28 text-left transition-all cursor-pointer`}
+              >
+                <span className="text-[10px] font-black uppercase tracking-wider opacity-60">{stat.label}</span>
+                <span className="text-2xl font-display font-bold leading-none">{stat.count} items</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Main Content split: Form vs Listings */}
@@ -177,8 +237,8 @@ export default function AdminDashboard() {
           {/* Creator Form */}
           <div className="bg-white border border-gray-150 p-6 rounded-3xl shadow-sm h-fit space-y-6">
             <h3 className="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center border-b border-gray-100 pb-3">
-              <Plus className="w-4 h-4 mr-1 text-[#7A0C16]" />
-              <span>Add New Product</span>
+              {editingProductId ? <Edit2 className="w-4 h-4 mr-1 text-[#7A0C16]" /> : <Plus className="w-4 h-4 mr-1 text-[#7A0C16]" />}
+              <span>{editingProductId ? 'Edit Listing' : 'Add New Product'}</span>
             </h3>
 
             <form onSubmit={handleAddProduct} className="space-y-4">
@@ -289,12 +349,23 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <button 
-                type="submit"
-                className="w-full py-3.5 bg-black hover:bg-drip-coral text-white rounded-xl font-bold tracking-widest uppercase text-xs transition-colors shadow-sm"
-              >
-                Create Listing
-              </button>
+              <div className="flex space-x-2">
+                {editingProductId && (
+                  <button 
+                    type="button"
+                    onClick={cancelEdit}
+                    className="w-1/3 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold tracking-widest uppercase text-xs transition-colors shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button 
+                  type="submit"
+                  className={`${editingProductId ? 'w-2/3' : 'w-full'} py-3.5 bg-black hover:bg-drip-coral text-white rounded-xl font-bold tracking-widest uppercase text-xs transition-colors shadow-sm`}
+                >
+                  {editingProductId ? 'Save Changes' : 'Create Listing'}
+                </button>
+              </div>
             </form>
 
             <button 
@@ -369,7 +440,7 @@ export default function AdminDashboard() {
                         <td className="p-4 text-right">
                           <div className="flex justify-end space-x-2">
                             <button 
-                              onClick={() => alert('Editing system coming soon.')}
+                              onClick={() => handleEdit(prod)}
                               className="p-2 border border-gray-200 hover:border-black text-gray-500 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
                               title="Edit listing"
                             >
