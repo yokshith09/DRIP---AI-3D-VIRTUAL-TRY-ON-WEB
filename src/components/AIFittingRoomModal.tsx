@@ -13,12 +13,19 @@ import {
   Download,
   Award,
   Zap,
-  Lock
+  Lock,
+  ArrowRight,
+  ArrowLeft,
+  Search,
+  Globe,
+  User as UserIcon,
+  CheckCircle2
 } from 'lucide-react';
 import Image from 'next/image';
 import imageCompression from 'browser-image-compression';
 import { useTryOnStore } from '@/store/tryOn';
 import { useCartStore } from '@/store/cart';
+import { useProductStore } from '@/store/products';
 
 interface AIFitModalProps {
   isOpen: boolean;
@@ -44,7 +51,7 @@ export default function AIFittingRoomModal({
   productImage, 
   brand = 'Common Projects',
   name = 'Premium Low Sneakers',
-  price = 8999 
+  price = 1999 
 }: AIFitModalProps) {
   const { 
     userPhoto, 
@@ -58,8 +65,40 @@ export default function AIFittingRoomModal({
     reset 
   } = useTryOnStore();
 
+  const { products } = useProductStore();
   const { addItem } = useCartStore();
+  
   const fileInputFaceRef = useRef<HTMLInputElement>(null);
+
+  // Wizard Steps: GENDER -> GARMENT -> USER_PHOTO -> PROCESSING -> DONE
+  const [wizardStep, setWizardStep] = useState<'GENDER' | 'GARMENT' | 'USER_PHOTO' | 'PROCESSING' | 'DONE'>('GENDER');
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
+  
+  // Selected garment for try-on (can be current product, a catalog product, or an imported product)
+  const [selectedGarment, setSelectedGarment] = useState<{
+    id: string;
+    image: string;
+    name: string;
+    brand: string;
+    price: number;
+    priceString: string;
+  }>({
+    id: 'current',
+    image: productImage,
+    name,
+    brand,
+    price,
+    priceString: `₹ ${price.toLocaleString('en-IN')}`
+  });
+
+  // Garment selection tab: 'CURRENT' | 'CATALOG' | 'IMPORT'
+  const [garmentTab, setGarmentTab] = useState<'CURRENT' | 'CATALOG' | 'IMPORT'>('CURRENT');
+  const [catalogSearch, setCatalogSearch] = useState('');
+  
+  // Import URL fields
+  const [importUrl, setImportUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState('');
 
   // Free Try-On limits states
   const [tryOnCount, setTryOnCount] = useState<number>(0);
@@ -68,7 +107,7 @@ export default function AIFittingRoomModal({
   const [premiumSuccess, setPremiumSuccess] = useState<boolean>(false);
 
   // Selected parameters for cart addition
-  const [selectedSize, setSelectedSize] = useState('UK 9');
+  const [selectedSize, setSelectedSize] = useState('M');
   const [selectedColor, setSelectedColor] = useState('Default');
 
   // Progressive loading text state
@@ -76,18 +115,34 @@ export default function AIFittingRoomModal({
   const [compareMode, setCompareMode] = useState<'after' | 'before'>('after');
   const [cartAdded, setCartAdded] = useState(false);
 
-  // Hydrate try-on limit count from localStorage
+  // Reset states on open
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const count = parseInt(localStorage.getItem('drip_tryon_count') || '0', 10);
-      setTryOnCount(count);
+    if (isOpen) {
+      setWizardStep('GENDER');
+      setSelectedGender(null);
+      setSelectedGarment({
+        id: 'current',
+        image: productImage,
+        name,
+        brand,
+        price,
+        priceString: `₹ ${price.toLocaleString('en-IN')}`
+      });
+      setGarmentTab('CURRENT');
+      setImportUrl('');
+      setImportError('');
+      reset();
       
-      const premium = localStorage.getItem('drip_is_premium') === 'true';
-      setIsPremium(premium);
+      if (typeof window !== 'undefined') {
+        const count = parseInt(localStorage.getItem('drip_tryon_count') || '0', 10);
+        setTryOnCount(count);
+        const premium = localStorage.getItem('drip_is_premium') === 'true';
+        setIsPremium(premium);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, productImage, name, brand, price, reset]);
 
-  // Rotate loading step messages
+  // Rotate loading step messages during processing
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (status === 'processing') {
@@ -101,13 +156,13 @@ export default function AIFittingRoomModal({
 
   if (!isOpen) return null;
 
+  // Handle user photo selection
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setStatus('uploading');
     try {
-      console.log('[TRY-ON] Compressing uploaded photo...');
       const options = {
         maxSizeMB: 0.8,
         maxWidthOrHeight: 1024,
@@ -121,15 +176,63 @@ export default function AIFittingRoomModal({
       setStatus('idle');
     } catch (err: any) {
       console.error('[TRY-ON] Image compression failed:', err);
-      setError('Failed to process image. Please try a different photo.');
+      setError('Failed to process image. Please try another photo.');
+      setStatus('idle');
     }
   };
 
+  // Import product scraping handler
+  const handleImportUrl = async () => {
+    if (!importUrl) {
+      setImportError('Please enter a valid product page URL.');
+      return;
+    }
+
+    setImporting(true);
+    setImportError('');
+
+    try {
+      const res = await fetch('/api/import-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: importUrl }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to scan product page');
+      }
+
+      const imported = data.product;
+      const parsedPriceNum = parseInt(imported.price.replace(/[^\d]/g, ''), 10) || 1999;
+
+      setSelectedGarment({
+        id: `imported-${Date.now()}`,
+        image: imported.image,
+        name: imported.name,
+        brand: imported.brand,
+        price: parsedPriceNum,
+        priceString: imported.price
+      });
+
+      setGarmentTab('CURRENT'); // Toggle view to show newly imported item preview
+      setImportUrl('');
+    } catch (err: any) {
+      console.error(err);
+      setImportError(err.message || 'Scrape failed. Target site might be blocked.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // Run AI Draping API trigger
   const triggerVirtualFitting = async () => {
     if (!userPhoto) return;
 
     setStatus('processing');
+    setWizardStep('PROCESSING');
     setCartAdded(false);
+    setError(null);
 
     try {
       const res = await fetch('/api/try-on', {
@@ -137,7 +240,7 @@ export default function AIFittingRoomModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           modelImage: userPhoto,
-          garmentImage: productImage,
+          garmentImage: selectedGarment.image,
         }),
       });
 
@@ -148,29 +251,30 @@ export default function AIFittingRoomModal({
       }
 
       setResult(data.resultUrl);
+      setStatus('done');
+      setWizardStep('DONE');
 
-      // Increment try-on count for non-premium members
+      // Increment try-on count
       if (!isPremium) {
         const nextCount = tryOnCount + 1;
         setTryOnCount(nextCount);
         localStorage.setItem('drip_tryon_count', nextCount.toString());
       }
-
     } catch (err: any) {
       console.error('[TRY-ON] API route error:', err);
-      setError(err.message || 'The styling engine encountered a GPU allocation error. Please retry.');
+      setError(err.message || 'GPU allocation error. Please retry.');
+      setStatus('idle');
+      setWizardStep('USER_PHOTO'); // Fallback back to upload screen so they can retry
     }
   };
 
+  // Simulated premium checkout payments upgrade
   const handleUpgradeToPremium = async () => {
     setIsPayingPremium(true);
     setError(null);
 
     try {
-      console.log('[PREMIUM UPGRADE] Running in Portfolio Showcase Mode. Simulating upgrade processing...');
-      // 1.2 second simulated processing delay
       await new Promise((resolve) => setTimeout(resolve, 1200));
-      
       setIsPremium(true);
       setPremiumSuccess(true);
       localStorage.setItem('drip_is_premium', 'true');
@@ -185,13 +289,13 @@ export default function AIFittingRoomModal({
   const handleAddToBagWithFit = () => {
     addItem({
       id: `fit-${Date.now()}`,
-      brand,
-      name,
-      price,
+      brand: selectedGarment.brand,
+      name: selectedGarment.name,
+      price: selectedGarment.price,
       size: selectedSize,
       color: selectedColor,
       qty: 1,
-      image: compareMode === 'after' && resultUrl ? resultUrl : productImage,
+      image: compareMode === 'after' && resultUrl ? resultUrl : selectedGarment.image,
       inStock: true,
       tryOnResultUrl: resultUrl || undefined
     });
@@ -203,28 +307,104 @@ export default function AIFittingRoomModal({
     if (!resultUrl) return;
     const link = document.createElement('a');
     link.href = resultUrl;
-    link.download = `drip-tryon-${brand.replace(/\s+/g, '-')}.png`;
+    link.download = `drip-tryon-${selectedGarment.brand.replace(/\s+/g, '-')}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Determine if free trails have been exhausted
+  // Filter products for catalog selector tab
+  const filteredCatalog = products.filter(p => 
+    p.name.toLowerCase().includes(catalogSearch.toLowerCase()) ||
+    p.brand.toLowerCase().includes(catalogSearch.toLowerCase())
+  );
+
   const isPaywallActive = !isPremium && tryOnCount >= 3 && !resultUrl;
 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/75 z-50 backdrop-blur-md transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/75 z-[70] backdrop-blur-md transition-opacity" onClick={onClose} />
       
       {/* Modal Container */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] md:w-[850px] h-[90vh] md:h-[650px] bg-white rounded-3xl z-50 overflow-hidden shadow-2xl flex flex-col md:flex-row transition-all duration-300 font-sans">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] md:w-[850px] h-[90vh] md:h-[650px] bg-white rounded-3xl z-[80] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-all duration-300 font-sans text-gray-900">
         
-        {/* Left Side: Visualizer Screen */}
-        <div className="relative w-full md:w-[420px] h-64 md:h-full bg-slate-950 flex items-center justify-center overflow-hidden shrink-0">
+        {/* Left Side: Visualizer Display Screen */}
+        <div className="relative w-full md:w-[420px] h-64 md:h-full bg-slate-950 flex items-center justify-center overflow-hidden shrink-0 border-r border-gray-100">
           
-          {/* Main Visualizer Case */}
-          {resultUrl && status === 'done' ? (
+          {/* GENDER Step Visual */}
+          {wizardStep === 'GENDER' && (
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-950 flex flex-col items-center justify-center p-8 text-center text-white space-y-4">
+              <UserIcon className="w-16 h-16 text-drip-coral opacity-40 animate-pulse" />
+              <h3 className="text-xl font-display font-medium italic">Fit Calibration</h3>
+              <p className="text-xs text-gray-400 max-w-[280px]">Select your target gender shape to calibrate structural clothing drapery mapping.</p>
+            </div>
+          )}
+
+          {/* GARMENT Step Visual */}
+          {wizardStep === 'GARMENT' && (
+            <div className="w-full h-full relative flex items-center justify-center bg-[#0d0e15] p-6">
+              {selectedGarment.image ? (
+                <div className="w-full h-full relative rounded-2xl overflow-hidden shadow-2xl">
+                  <Image src={selectedGarment.image} alt={selectedGarment.name} fill className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-5">
+                    <span className="text-[9px] text-drip-coral font-black tracking-widest uppercase">{selectedGarment.brand}</span>
+                    <h4 className="text-white text-sm font-bold truncate">{selectedGarment.name}</h4>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-white space-y-2">
+                  <ShoppingBag className="w-10 h-10 text-gray-600 mx-auto" />
+                  <p className="text-xs text-gray-400">No garment selected.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* USER_PHOTO Step Visual */}
+          {wizardStep === 'USER_PHOTO' && (
+            <div className="w-full h-full relative bg-[#0a0b10] flex items-center justify-center">
+              {userPhoto ? (
+                <Image src={userPhoto} alt="User silhouette preview" fill className="object-cover" />
+              ) : (
+                <div className="text-center text-white p-8 space-y-3">
+                  <Camera className="w-16 h-16 text-drip-coral/40 mx-auto animate-bounce" />
+                  <h4 className="text-base font-display font-semibold italic">Upload Body Silhouette</h4>
+                  <p className="text-[11px] text-gray-500 max-w-[280px]">Choose a clean, well-lit photograph. Keep your hands free and stand facing the camera.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PROCESSING Step Visual */}
+          {wizardStep === 'PROCESSING' && (
+            <div className="absolute inset-0 bg-[#0A0B10] flex flex-col items-center justify-center p-8 text-center text-white space-y-6">
+              <div className="relative flex items-center justify-center">
+                <div className="w-20 h-20 border border-drip-coral/30 rounded-full animate-ping"></div>
+                <Loader2 className="w-10 h-10 text-drip-coral animate-spin absolute" />
+              </div>
+              <div className="space-y-3">
+                <span className="text-[10px] text-drip-coral uppercase tracking-[0.3em] font-black block animate-pulse">
+                  GPU DRAPING PIPELINE ACTIVE
+                </span>
+                <h4 className="text-sm font-bold text-gray-200 h-8 flex items-center justify-center px-4 leading-snug">
+                  {STYLING_PROGRESS_STEPS[progressStepIdx]}
+                </h4>
+                <div className="w-48 h-1 bg-white/10 rounded-full mx-auto overflow-hidden">
+                  <div 
+                    className="h-full bg-drip-coral transition-all duration-1000"
+                    style={{ width: `${((progressStepIdx + 1) / STYLING_PROGRESS_STEPS.length) * 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
+                  Step {progressStepIdx + 1} of {STYLING_PROGRESS_STEPS.length}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* DONE Step Visual (Toggle Results) */}
+          {wizardStep === 'DONE' && resultUrl && (
             <div className="w-full h-full relative">
               <Image 
                 src={compareMode === 'after' ? resultUrl : userPhoto!} 
@@ -249,91 +429,43 @@ export default function AIFittingRoomModal({
                 </button>
               </div>
 
-              {/* Top match label badge */}
-              <div className="absolute top-4 left-4 bg-drip-green text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shadow-md">
+              {/* Success badge */}
+              <div className="absolute top-4 left-4 bg-drip-green text-white text-[9px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider shadow-md">
                 Fitted perfectly
               </div>
             </div>
-          ) : status === 'processing' ? (
-            // Processing status
-            <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white space-y-6">
-              <div className="relative flex items-center justify-center">
-                <div className="w-16 h-16 border-2 border-drip-green/30 rounded-full animate-ping"></div>
-                <Loader2 className="w-8 h-8 text-drip-green animate-spin absolute" />
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] text-drip-green uppercase tracking-widest font-black block animate-pulse">Rendering canvas...</span>
-                <p className="text-xs text-gray-400 font-medium max-w-[280px] h-8 flex items-center justify-center">
-                  {STYLING_PROGRESS_STEPS[progressStepIdx]}
-                </p>
-              </div>
-            </div>
-          ) : userPhoto ? (
-            // Photo uploaded but fit not started
-            <div className="w-full h-full relative">
-              <Image src={userPhoto} alt="User silhouette preview" fill className="object-cover" />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                <button 
-                  onClick={triggerVirtualFitting}
-                  className="px-5 py-2.5 bg-drip-green text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg flex items-center space-x-1.5"
-                >
-                  <Sparkles className="w-4 h-4 fill-white" />
-                  <span>Drape Garment Now</span>
-                </button>
-              </div>
-              <button 
-                onClick={() => setUserPhoto(null)}
-                className="absolute top-4 left-4 bg-black/60 text-white text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider hover:bg-black transition-colors"
-              >
-                Change Photo
-              </button>
-            </div>
-          ) : (
-            // Initial blank state
-            <div className="absolute inset-0 bg-[#0A0B10] flex flex-col justify-end p-8">
-              <div className="absolute inset-0 flex items-center justify-center flex-col opacity-10">
-                <Camera className="w-24 h-24 text-white" />
-              </div>
-              <div className="relative z-10 space-y-3">
-                <div className="w-10 h-10 rounded-full bg-drip-coral/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-drip-coral fill-drip-coral" />
-                </div>
-                <h3 className="text-2xl font-display text-white leading-tight font-semibold italic">See Fabric Draping <br/>Directly On You.</h3>
-                <p className="text-gray-400 text-xs leading-relaxed">
-                  Select a full-body photograph. Our advanced neural networks will drape this garment realistically over your shape in real-time.
-                </p>
-              </div>
-            </div>
           )}
+
         </div>
 
-        {/* Right Side: Paywall OR Actions */}
+        {/* Right Side: Configurations Wizard and Paywalls */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8 relative flex flex-col justify-between">
           
           {/* Close button */}
           <button 
             onClick={onClose} 
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black transition-colors bg-gray-50 rounded-full z-15"
+            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black transition-colors bg-gray-50 rounded-full z-20"
           >
             <X className="w-5 h-5" />
           </button>
 
           {isPaywallActive ? (
-            // PREMIUM PAYWALL RENDER
-            <div className="flex flex-col justify-center h-full space-y-6 pt-4 animate-in fade-in duration-500">
+            /* ========================================= */
+            /*              PREMIUM PAYWALL RENDER       */
+            /* ========================================= */
+            <div className="flex flex-col justify-center h-full space-y-6 pt-4 animate-in fade-in duration-500 text-left">
               <div className="flex items-center space-x-2">
                 <Award className="w-6 h-6 text-drip-coral animate-bounce" />
                 <span className="text-[10px] font-black tracking-widest uppercase text-drip-coral">Styling limit reached</span>
               </div>
               
-              <div className="space-y-2 text-left">
+              <div className="space-y-2">
                 <h2 className="text-2xl font-display font-bold text-gray-900 leading-tight">Style Limits Reached! 🌟</h2>
                 <p className="text-xs text-gray-500 leading-relaxed">
                   You have consumed your **3 free try-on trials**. Unlock unlimited styling sessions, body caliper calibration tools, and priority GPU processing instantly!
                 </p>
               </div>
 
-              {/* Premium Features List */}
               <div className="bg-gradient-to-br from-[#1E1E2F] to-[#0F0F1A] text-white p-5 rounded-2xl border border-white/5 space-y-3 shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-drip-coral opacity-10 rounded-full blur-xl"></div>
                 <div className="flex items-center space-x-3 text-xs font-semibold text-gray-200">
@@ -351,12 +483,11 @@ export default function AIFittingRoomModal({
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 text-xs flex items-center space-x-2">
+                <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 text-xs">
                   <span>{error}</span>
                 </div>
               )}
 
-              {/* Checkout CTA button */}
               <div className="pt-2">
                 {isPayingPremium ? (
                   <button 
@@ -382,7 +513,9 @@ export default function AIFittingRoomModal({
               </div>
             </div>
           ) : premiumSuccess ? (
-            // CELEBRATION UPGRADE SUCCESS
+            /* ========================================= */
+            /*         PREMIUM SUCCESS CELEBRATION       */
+            /* ========================================= */
             <div className="flex flex-col justify-center items-center text-center h-full space-y-5 pt-4 animate-in fade-in zoom-in-95 duration-500">
               <div className="w-16 h-16 bg-drip-green text-white rounded-full flex items-center justify-center shadow-lg">
                 <Check className="w-8 h-8 animate-bounce" />
@@ -401,89 +534,356 @@ export default function AIFittingRoomModal({
               </button>
             </div>
           ) : (
-            // REGULAR FITTING OPTIONS
-            <div className="flex flex-col justify-between h-full">
+            /* ========================================= */
+            /*              WIZARD ACTIVE FLOW           */
+            /* ========================================= */
+            <div className="flex flex-col justify-between h-full text-left">
               
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 mt-2">
-                  <Sparkles className="w-5 h-5 text-drip-coral fill-drip-coral" />
-                  <span className="text-[10px] font-black tracking-widest uppercase text-drip-coral">AI Fitting Room v2.0</span>
-                </div>
-
-                <div className="space-y-1 text-left">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{brand}</span>
-                  <h2 className="text-xl font-display font-medium text-black leading-snug">{name}</h2>
-                  <span className="text-base font-black text-black">₹{price.toLocaleString('en-IN')}</span>
-                </div>
-
-                {/* Free Counter Badge */}
-                {!isPremium && (
-                  <div className="inline-flex items-center space-x-1.5 bg-[#F0F7FF] text-[#0055A4] px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border border-blue-100">
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>Free Trials Remaining: {Math.max(0, 3 - tryOnCount)} / 3</span>
+              {/* STEP 1: GENDER SELECTION */}
+              {wizardStep === 'GENDER' && (
+                <div className="space-y-6 pt-4 animate-in fade-in duration-300">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black tracking-widest uppercase text-drip-coral">Step 1 of 3</span>
+                    <h2 className="text-xl font-display font-medium text-black">Select Gender Profile</h2>
+                    <p className="text-xs text-gray-500">We use this selection to calibrate the AI skeletal model boundaries for drape fit optimization.</p>
                   </div>
-                )}
 
-                {error && (
-                  <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 text-xs flex items-start space-x-2">
-                    <AlertTriangle className="w-4.5 h-4.5 shrink-0 text-red-500 mt-0.5" />
-                    <span>{error}</span>
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <button 
+                      type="button"
+                      onClick={() => { setSelectedGender('male'); setWizardStep('GARMENT'); }}
+                      className="border border-gray-200 hover:border-black p-8 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all hover:shadow-md group bg-gray-50/50"
+                    >
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-black group-hover:text-white transition-colors">
+                        <UserIcon className="w-6 h-6" />
+                      </div>
+                      <span className="text-xs font-black uppercase tracking-wider">Male Profile</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={() => { setSelectedGender('female'); setWizardStep('GARMENT'); }}
+                      className="border border-gray-200 hover:border-black p-8 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all hover:shadow-md group bg-gray-50/50"
+                    >
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-black group-hover:text-white transition-colors">
+                        <UserIcon className="w-6 h-6" />
+                      </div>
+                      <span className="text-xs font-black uppercase tracking-wider">Female Profile</span>
+                    </button>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Upload Selector zone */}
-                {!userPhoto && status === 'idle' && (
-                  <div className="pt-2 text-left">
-                    <label className="text-[10px] font-bold text-gray-700 block mb-2 uppercase tracking-wider">Upload Your Body Photo:</label>
+              {/* STEP 2: GARMENT SELECTION */}
+              {wizardStep === 'GARMENT' && (
+                <div className="space-y-4 pt-2 animate-in fade-in duration-300 flex-1 flex flex-col">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black tracking-widest uppercase text-drip-coral">Step 2 of 3</span>
+                    <h2 className="text-xl font-display font-medium text-black">Select Outfit to Try On</h2>
+                  </div>
+
+                  {/* Tabs Bar */}
+                  <div className="flex border-b border-gray-100 text-[10px] font-black uppercase tracking-wider">
+                    <button 
+                      type="button"
+                      onClick={() => setGarmentTab('CURRENT')}
+                      className={`flex-1 pb-2 border-b-2 text-center transition-all ${garmentTab === 'CURRENT' ? 'border-black text-black' : 'border-transparent text-gray-400'}`}
+                    >
+                      Selected Garment
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setGarmentTab('CATALOG')}
+                      className={`flex-1 pb-2 border-b-2 text-center transition-all ${garmentTab === 'CATALOG' ? 'border-black text-black' : 'border-transparent text-gray-400'}`}
+                    >
+                      Store Catalog
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setGarmentTab('IMPORT')}
+                      className={`flex-1 pb-2 border-b-2 text-center transition-all ${garmentTab === 'IMPORT' ? 'border-black text-black' : 'border-transparent text-gray-400'}`}
+                    >
+                      Import via URL Link
+                    </button>
+                  </div>
+
+                  {/* Tab Contents */}
+                  <div className="flex-1 overflow-y-auto max-h-[280px] pr-1 py-2">
+                    
+                    {/* Tab: CURRENT */}
+                    {garmentTab === 'CURRENT' && (
+                      <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex items-center space-x-4">
+                        <div className="w-14 h-16 bg-gray-200 rounded-lg relative overflow-hidden shrink-0 shadow-sm border border-gray-100">
+                          <Image src={selectedGarment.image} alt={selectedGarment.name} fill className="object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[9px] text-gray-400 font-bold uppercase block tracking-wider">{selectedGarment.brand}</span>
+                          <h4 className="text-xs font-bold text-gray-800 truncate">{selectedGarment.name}</h4>
+                          <span className="text-xs font-black text-black block mt-0.5">{selectedGarment.priceString}</span>
+                        </div>
+                        <div className="text-drip-green bg-drip-green/10 p-1.5 rounded-full shrink-0">
+                          <CheckCircle2 className="w-5 h-5 fill-drip-green text-white" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tab: CATALOG */}
+                    {garmentTab === 'CATALOG' && (
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                          <input 
+                            type="text"
+                            value={catalogSearch}
+                            onChange={(e) => setCatalogSearch(e.target.value)}
+                            placeholder="Filter by brand or name..."
+                            className="w-full border border-gray-200 pl-8 pr-3 py-2 rounded-xl text-xs focus:outline-none focus:border-black"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          {filteredCatalog.slice(0, 10).map((prod) => (
+                            <div 
+                              key={prod.id}
+                              onClick={() => setSelectedGarment({
+                                id: prod.id,
+                                image: prod.image,
+                                name: prod.name,
+                                brand: prod.brand,
+                                price: prod.priceNumber,
+                                priceString: prod.price
+                              })}
+                              className={`p-2.5 rounded-xl border flex items-center space-x-2.5 cursor-pointer transition-all ${
+                                selectedGarment.image === prod.image ? 'border-black bg-gray-50 shadow-xs' : 'border-gray-155 hover:bg-gray-50/50'
+                              }`}
+                            >
+                              <div className="w-8 h-10 bg-gray-200 rounded relative overflow-hidden shrink-0">
+                                <Image src={prod.image} alt={prod.name} fill className="object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-[8px] text-gray-400 font-bold block uppercase truncate">{prod.brand}</span>
+                                <span className="text-[10px] font-bold text-gray-700 truncate block">{prod.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tab: IMPORT */}
+                    {garmentTab === 'IMPORT' && (
+                      <div className="space-y-4">
+                        <div className="space-y-1 text-left">
+                          <label className="text-[9px] font-bold text-gray-700 block uppercase tracking-wider">Paste Fast-Fashion Link:</label>
+                          <p className="text-[10px] text-gray-400 leading-normal">Supports scraping garments from Snitch, Banana Club, and Myntra URLs.</p>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <input 
+                            type="text" 
+                            value={importUrl}
+                            onChange={(e) => setImportUrl(e.target.value)}
+                            placeholder="https://www.snitch.co.in/products/..."
+                            className="flex-1 border border-gray-200 px-3 py-2.5 rounded-xl text-xs focus:outline-none focus:border-black"
+                          />
+                          <button 
+                            type="button"
+                            onClick={handleImportUrl}
+                            disabled={importing}
+                            className="bg-black hover:bg-drip-coral text-white px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors shrink-0 flex items-center justify-center"
+                          >
+                            {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Import'}
+                          </button>
+                        </div>
+
+                        {importError && (
+                          <div className="bg-red-50 border border-red-100 text-red-700 p-2.5 rounded-xl text-[10px] font-medium leading-relaxed">
+                            {importError}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  </div>
+
+                  {/* Actions segment */}
+                  <div className="flex space-x-3 pt-4 border-t border-gray-100 mt-auto">
+                    <button 
+                      type="button"
+                      onClick={() => setWizardStep('GENDER')}
+                      className="px-4 py-3 border border-gray-200 hover:bg-gray-50 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-1"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" /> <span>Back</span>
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setWizardStep('USER_PHOTO')}
+                      disabled={!selectedGarment.image}
+                      className="flex-1 bg-black hover:bg-drip-coral text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center space-x-1.5 transition-colors disabled:opacity-50"
+                    >
+                      <span>Proceed to Upload Photo</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: UPLOAD USER PHOTO */}
+              {wizardStep === 'USER_PHOTO' && (
+                <div className="space-y-5 pt-4 animate-in fade-in duration-300 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black tracking-widest uppercase text-drip-coral">Step 3 of 3</span>
+                    <h2 className="text-xl font-display font-medium text-black">Upload Silhouette</h2>
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 text-xs flex items-center space-x-2">
+                      <AlertTriangle className="w-4 h-4 text-red-500" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  {!userPhoto ? (
                     <div 
                       onClick={() => fileInputFaceRef.current?.click()}
-                      className="w-full h-32 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-drip-navy hover:bg-gray-50/50 transition-all group bg-gray-50"
+                      className="w-full h-36 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-drip-navy hover:bg-gray-50/50 transition-all group bg-gray-50"
                     >
                       <Upload className="w-6 h-6 text-gray-400 group-hover:scale-110 transition-transform mb-1" />
                       <span className="text-xs font-bold text-gray-800">Select Full-Body Photo</span>
                       <span className="text-[9px] text-gray-400 mt-0.5">JPEG/PNG under 10MB</span>
                     </div>
-                  </div>
-                )}
-
-                {/* Configuration Selectors when done */}
-                {resultUrl && status === 'done' && (
-                  <div className="grid grid-cols-2 gap-4 pt-2 text-left">
-                    <div>
-                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Select Fit Size</label>
-                      <select 
-                        value={selectedSize}
-                        onChange={(e) => setSelectedSize(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-black"
+                  ) : (
+                    <div className="bg-drip-green/10 border border-drip-green/20 p-5 rounded-2xl flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-drip-green text-white p-1 rounded-full">
+                          <Check className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-800 uppercase tracking-wider">Photo loaded successfully</p>
+                          <p className="text-[9px] text-gray-400 uppercase mt-0.5">Caliper coordinates mapped</p>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => fileInputFaceRef.current?.click()}
+                        className="text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-black border border-gray-200 hover:border-black px-3 py-1.5 rounded-lg bg-white transition-all"
                       >
-                        <option>UK 7</option>
-                        <option>UK 8</option>
-                        <option>UK 9</option>
-                        <option>UK 10</option>
-                        <option>UK 11</option>
-                      </select>
+                        Change
+                      </button>
                     </div>
-                    <div>
-                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Select Color</label>
-                      <select 
-                        value={selectedColor}
-                        onChange={(e) => setSelectedColor(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-black"
-                      >
-                        <option>White/Gold</option>
-                        <option>Navy Blue</option>
-                        <option>Sand Beige</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
 
-              {/* Bottom segment: Actions */}
-              <div className="pt-6 border-t border-gray-100 flex flex-col space-y-2 mt-auto">
-                {resultUrl && status === 'done' ? (
-                  <div className="flex flex-col space-y-2">
+                  {/* Limit warnings */}
+                  {!isPremium && (
+                    <div className="inline-flex items-center space-x-1.5 bg-[#F0F7FF] text-[#0055A4] px-3.5 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider border border-blue-100 self-start">
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>Free Trials Remaining: {Math.max(0, 3 - tryOnCount)} / 3</span>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3 pt-4 border-t border-gray-100 mt-auto">
                     <button 
+                      type="button"
+                      onClick={() => setWizardStep('GARMENT')}
+                      className="px-4 py-3 border border-gray-200 hover:bg-gray-50 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-1"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" /> <span>Back</span>
+                    </button>
+                    
+                    {userPhoto ? (
+                      <button 
+                        type="button"
+                        onClick={triggerVirtualFitting}
+                        className="flex-1 bg-drip-green text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex justify-center items-center space-x-2 shadow-md hover:scale-102 transition-all"
+                      >
+                        <Sparkles className="w-4 h-4 fill-white" />
+                        <span>Begin AI Fitting Room</span>
+                      </button>
+                    ) : (
+                      <button 
+                        disabled
+                        className="flex-1 bg-gray-200 text-gray-400 py-3 rounded-xl text-xs font-bold uppercase tracking-widest cursor-not-allowed text-center"
+                      >
+                        Upload Photo to Fit Outfit
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: PROCESSING */}
+              {wizardStep === 'PROCESSING' && (
+                <div className="flex flex-col justify-center h-full space-y-5 py-8 animate-in fade-in duration-300">
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-display font-medium text-gray-900 leading-tight">AI Draping Pipeline In Progress...</h2>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Our advanced graphics models are aligning the garment silhouettes, mapping fabric coordinates to your skeletal anchor points, and generating high-fidelity photorealistic renders.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-[#FAF9F7] p-5 rounded-2xl border border-gray-150 space-y-2 text-xs font-medium text-gray-500 text-left">
+                    <div className="flex items-center space-x-2">
+                      <span className="w-1.5 h-1.5 bg-drip-coral rounded-full animate-ping shrink-0"></span>
+                      <span>Targeting Model: IDM-VTON Edge (Tier 1 Replicate GPU Cluster)</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-normal pl-3.5 uppercase font-bold">
+                      Estimated rendering time: 15 - 25 seconds. Please keep this screen open.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 5: COMPLETED RESULTS */}
+              {wizardStep === 'DONE' && (
+                <div className="space-y-4 pt-2 animate-in fade-in zoom-in-95 duration-500 flex-1 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 mt-2">
+                      <Sparkles className="w-5 h-5 text-drip-coral fill-drip-coral" />
+                      <span className="text-[10px] font-black tracking-widest uppercase text-drip-coral">AI Fitting Room Completed</span>
+                    </div>
+
+                    <div className="space-y-1 text-left">
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{selectedGarment.brand}</span>
+                      <h2 className="text-xl font-display font-medium text-black leading-snug">{selectedGarment.name}</h2>
+                      <span className="text-base font-black text-black">{selectedGarment.priceString}</span>
+                    </div>
+
+                    {/* Size and Color Options selectors */}
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div>
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Select Fit Size</label>
+                        <select 
+                          value={selectedSize}
+                          onChange={(e) => setSelectedSize(e.target.value)}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-black bg-white"
+                        >
+                          <option>XS</option>
+                          <option>S</option>
+                          <option>M</option>
+                          <option>L</option>
+                          <option>XL</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Select Color</label>
+                        <select 
+                          value={selectedColor}
+                          onChange={(e) => setSelectedColor(e.target.value)}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-black bg-white"
+                        >
+                          <option>Default</option>
+                          <option>White</option>
+                          <option>Navy Blue</option>
+                          <option>Jet Black</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions buttons */}
+                  <div className="pt-6 border-t border-gray-100 flex flex-col space-y-2 mt-auto">
+                    <button 
+                      type="button"
                       onClick={handleAddToBagWithFit}
                       className={`w-full text-white py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs transition-all flex justify-center items-center space-x-2 ${
                         cartAdded ? 'bg-drip-green hover:bg-drip-green' : 'bg-drip-navy hover:bg-black'
@@ -503,60 +903,29 @@ export default function AIFittingRoomModal({
                     </button>
                     <div className="flex space-x-2">
                       <button 
+                        type="button"
                         onClick={handleDownload}
-                        className="flex-1 bg-gray-50 text-gray-700 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-100 flex items-center justify-center space-x-1.5 transition-colors"
+                        className="flex-1 bg-gray-50 text-gray-700 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-100 flex items-center justify-center space-x-1.5 transition-colors border border-gray-200"
                       >
                         <Download className="w-4 h-4" />
                         <span>Download</span>
                       </button>
                       <button 
-                        onClick={reset}
-                        className="flex-1 bg-gray-50 text-red-500 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-50 flex items-center justify-center space-x-1.5 transition-colors"
+                        type="button"
+                        onClick={() => {
+                          setWizardStep('GENDER');
+                          setSelectedGender(null);
+                          setUserPhoto(null);
+                          reset();
+                        }}
+                        className="flex-1 bg-gray-50 text-red-500 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-50 flex items-center justify-center space-x-1.5 transition-colors border border-gray-200"
                       >
-                        <span>Clear Result</span>
+                        <span>Start Over</span>
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <>
-                    {userPhoto && status === 'idle' ? (
-                      <button 
-                        onClick={triggerVirtualFitting}
-                        className="w-full bg-drip-navy hover:bg-black text-white py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs transition-colors flex justify-center items-center space-x-2"
-                      >
-                        <Sparkles className="w-4 h-4 fill-white" />
-                        <span>Begin Virtual Fitting</span>
-                      </button>
-                    ) : (
-                      <button 
-                        disabled 
-                        className="w-full bg-gray-200 text-gray-400 py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs cursor-not-allowed text-center"
-                      >
-                        Upload Photo to Fit Outfit
-                      </button>
-                    )}
-                    
-                    <button 
-                      onClick={handleAddToBagWithFit}
-                      className={`w-full py-3.5 rounded-2xl font-bold tracking-widest uppercase text-xs transition-all flex justify-center items-center space-x-2 border ${
-                        cartAdded ? 'bg-drip-green border-drip-green text-white' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {cartAdded ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          <span>Added to Bag!</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingBag className="w-4 h-4" />
-                          <span>Add to Bag</span>
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
-              </div>
+                </div>
+              )}
 
             </div>
           )}
