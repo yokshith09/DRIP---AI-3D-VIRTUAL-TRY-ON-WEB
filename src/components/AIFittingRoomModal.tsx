@@ -564,7 +564,7 @@ export default function AIFittingRoomModal({
                   <div className="grid grid-cols-2 gap-4 pt-2">
                     <button 
                       type="button"
-                      onClick={() => { setSelectedGender('male'); setWizardStep('GARMENT'); }}
+                      onClick={() => { setSelectedGender('male'); setWizardStep('USER_PHOTO'); }}
                       className="border border-gray-200 hover:border-black p-8 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all hover:shadow-md group bg-gray-50/50"
                     >
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-black group-hover:text-white transition-colors">
@@ -575,7 +575,7 @@ export default function AIFittingRoomModal({
 
                     <button 
                       type="button"
-                      onClick={() => { setSelectedGender('female'); setWizardStep('GARMENT'); }}
+                      onClick={() => { setSelectedGender('female'); setWizardStep('USER_PHOTO'); }}
                       className="border border-gray-200 hover:border-black p-8 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all hover:shadow-md group bg-gray-50/50"
                     >
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-black group-hover:text-white transition-colors">
@@ -591,7 +591,7 @@ export default function AIFittingRoomModal({
               {wizardStep === 'GARMENT' && (
                 <div className="space-y-4 pt-2 animate-in fade-in duration-300 flex-1 flex flex-col">
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black tracking-widest uppercase text-drip-coral">Step 2 of 3</span>
+                    <span className="text-[9px] font-black tracking-widest uppercase text-drip-coral">Step 3 of 3</span>
                     <h2 className="text-xl font-display font-medium text-black">Select Outfit to Try On</h2>
                   </div>
 
@@ -723,19 +723,19 @@ export default function AIFittingRoomModal({
                   <div className="flex space-x-3 pt-4 border-t border-gray-100 mt-auto">
                     <button 
                       type="button"
-                      onClick={() => setWizardStep('GENDER')}
+                      onClick={() => setWizardStep('USER_PHOTO')}
                       className="px-4 py-3 border border-gray-200 hover:bg-gray-50 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-1"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" /> <span>Back</span>
                     </button>
                     <button 
                       type="button"
-                      onClick={() => setWizardStep('USER_PHOTO')}
-                      disabled={!selectedGarment.image}
-                      className="flex-1 bg-black hover:bg-drip-coral text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center space-x-1.5 transition-colors disabled:opacity-50"
+                      onClick={triggerVirtualFitting}
+                      disabled={!selectedGarment.image || !userPhoto}
+                      className="flex-1 bg-drip-green text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center space-x-1.5 shadow-md hover:scale-102 transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:bg-gray-200 disabled:text-gray-400"
                     >
-                      <span>Proceed to Upload Photo</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4 fill-white" />
+                      <span>{userPhoto ? 'Begin AI Fitting Room' : 'Upload Photo First'}</span>
                     </button>
                   </div>
                 </div>
@@ -745,7 +745,7 @@ export default function AIFittingRoomModal({
               {wizardStep === 'USER_PHOTO' && (
                 <div className="space-y-5 pt-4 animate-in fade-in duration-300 flex-1 flex flex-col justify-between">
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black tracking-widest uppercase text-drip-coral">Step 3 of 3</span>
+                    <span className="text-[9px] font-black tracking-widest uppercase text-drip-coral">Step 2 of 3</span>
                     <h2 className="text-xl font-display font-medium text-black">Upload Silhouette</h2>
                   </div>
 
@@ -797,7 +797,7 @@ export default function AIFittingRoomModal({
                   <div className="flex space-x-3 pt-4 border-t border-gray-100 mt-auto">
                     <button 
                       type="button"
-                      onClick={() => setWizardStep('GARMENT')}
+                      onClick={() => setWizardStep('GENDER')}
                       className="px-4 py-3 border border-gray-200 hover:bg-gray-50 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-1"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" /> <span>Back</span>
@@ -806,18 +806,18 @@ export default function AIFittingRoomModal({
                     {userPhoto ? (
                       <button 
                         type="button"
-                        onClick={triggerVirtualFitting}
-                        className="flex-1 bg-drip-green text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex justify-center items-center space-x-2 shadow-md hover:scale-102 transition-all"
+                        onClick={() => setWizardStep('GARMENT')}
+                        className="flex-1 bg-black hover:bg-drip-coral text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex justify-center items-center space-x-2 transition-all"
                       >
-                        <Sparkles className="w-4 h-4 fill-white" />
-                        <span>Begin AI Fitting Room</span>
+                        <span>Proceed to Select Garment</span>
+                        <ArrowRight className="w-4 h-4" />
                       </button>
                     ) : (
                       <button 
                         disabled
                         className="flex-1 bg-gray-200 text-gray-400 py-3 rounded-xl text-xs font-bold uppercase tracking-widest cursor-not-allowed text-center"
                       >
-                        Upload Photo to Fit Outfit
+                        Upload Photo to Proceed
                       </button>
                     )}
                   </div>

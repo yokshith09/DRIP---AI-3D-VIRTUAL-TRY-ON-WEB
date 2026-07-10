@@ -5,18 +5,16 @@ import { useProductStore } from '@/store/products';
 import { Product } from '@/data/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
-import { Trash2, Plus, LogOut, Package, Search, Tag, Settings, SlidersHorizontal, Sparkles, Check } from 'lucide-react';
+import { Trash2, Plus, LogOut, Package, Search, Tag, Settings, SlidersHorizontal, Sparkles, Check, Edit2 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { products, addProduct, deleteProduct, resetProducts } = useProductStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
   
-  // Login fields
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-
   // Form fields for adding product
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
@@ -30,34 +28,24 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
 
-  // Authentication logic
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email === 'admin@drip.com' && password === 'admin123') {
-      setIsAuthenticated(true);
-      setLoginError('');
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('drip_admin_auth', 'true');
-      }
-    } else {
-      setLoginError('Invalid administrator credentials.');
-    }
-  };
-
+  // Authentication logic via Supabase
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const auth = localStorage.getItem('drip_admin_auth');
-      if (auth === 'true') {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.email !== 'admin@drip.com') {
+        router.push('/');
+      } else {
         setIsAuthenticated(true);
       }
-    }
-  }, []);
+    };
+    checkAuth();
+  }, [router]);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('drip_admin_auth');
-    }
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/');
   };
 
   // Add Product Submit
@@ -136,54 +124,9 @@ export default function AdminDashboard() {
       <main className="min-h-screen bg-[#FAF4EE] flex flex-col justify-between font-sans">
         <Navbar />
         <div className="flex-1 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white border border-gray-150 rounded-3xl p-8 shadow-xl">
-            <div className="text-center mb-8">
-              <span className="text-[10px] text-[#7A0C16] font-black uppercase tracking-[0.3em]">DRIP Systems</span>
-              <h2 className="text-2xl font-display font-bold text-gray-900 mt-1">Admin Portal Login</h2>
-              <p className="text-xs text-gray-500 mt-2">Sign in using credentials to manage products database catalog.</p>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Email Address</label>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@drip.com"
-                  className="w-full border border-gray-200 px-4 py-3 rounded-xl text-xs font-medium focus:outline-none focus:border-black"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Password</label>
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full border border-gray-200 px-4 py-3 rounded-xl text-xs font-medium focus:outline-none focus:border-black"
-                  required
-                />
-              </div>
-
-              {loginError && (
-                <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider">{loginError}</p>
-              )}
-
-              <button 
-                type="submit"
-                className="w-full py-4 bg-[#7A0C16] hover:bg-black text-[#FAF4EE] hover:text-white rounded-xl font-bold tracking-widest uppercase text-xs transition-all shadow-md mt-4"
-              >
-                Sign In to Dashboard
-              </button>
-            </form>
-
-            <div className="mt-6 border-t border-gray-100 pt-4 text-center">
-              <p className="text-[10px] text-gray-400 font-bold uppercase">Default Credentials:</p>
-              <p className="text-[11px] text-gray-600 mt-1 font-mono">admin@drip.com / admin123</p>
-            </div>
+          <div className="text-center space-y-2">
+            <span className="text-[10px] text-[#7A0C16] font-bold uppercase tracking-[0.25em] animate-pulse block">Verifying Admin Access...</span>
+            <div className="w-12 h-0.5 bg-[#7A0C16] mx-auto animate-bounce"></div>
           </div>
         </div>
         <Footer />
@@ -424,13 +367,22 @@ export default function AdminDashboard() {
                           {prod.price}
                         </td>
                         <td className="p-4 text-right">
-                          <button 
-                            onClick={() => handleDelete(prod.id, prod.name)}
-                            className="p-2 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                            title="Delete listing"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex justify-end space-x-2">
+                            <button 
+                              onClick={() => alert('Editing system coming soon.')}
+                              className="p-2 border border-gray-200 hover:border-black text-gray-500 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
+                              title="Edit listing"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(prod.id, prod.name)}
+                              className="p-2 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                              title="Delete listing"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

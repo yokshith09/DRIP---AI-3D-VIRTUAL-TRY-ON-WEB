@@ -35,6 +35,10 @@ export default function Profile() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [savedName, setSavedName] = useState('');
+  const [activeToggle, setActiveToggle] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -72,7 +76,8 @@ export default function Profile() {
     );
   }
 
-  const userDisplayName = user?.email?.split('@')[0] || 'Member';
+  const baseName = user?.email?.split('@')[0] || 'Member';
+  const displayTitle = savedName || baseName;
 
   return (
     <main className="min-h-screen bg-gray-50 pb-32">
@@ -84,13 +89,34 @@ export default function Profile() {
         <div className="bg-white border border-gray-100 p-8 flex flex-col md:flex-row items-center md:justify-between shadow-sm mb-12">
            <div className="flex items-center mb-6 md:mb-0">
               <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl font-display font-black text-black border-4 border-gray-50 shadow-inner uppercase">
-                 {userDisplayName.slice(0, 2)}
+                 {displayTitle.slice(0, 2)}
               </div>
               <div className="ml-8 text-center md:text-left">
-                 <h1 className="text-3xl font-display font-medium text-black italic capitalize">{userDisplayName}</h1>
+                 {isEditing ? (
+                   <div className="flex items-center space-x-3 mb-1">
+                     <input 
+                       type="text" 
+                       value={customName}
+                       onChange={e => setCustomName(e.target.value)}
+                       className="border border-gray-300 rounded-md px-3 py-1.5 text-sm font-sans focus:outline-none focus:border-black"
+                       placeholder={baseName}
+                       autoFocus
+                     />
+                     <button 
+                       onClick={() => { setSavedName(customName); setIsEditing(false); }} 
+                       className="text-[10px] font-black text-white bg-black hover:bg-gray-800 px-4 py-2 rounded-md uppercase transition-colors"
+                     >
+                       Save
+                     </button>
+                   </div>
+                 ) : (
+                   <h1 className="text-3xl font-display font-medium text-black italic capitalize">{displayTitle}</h1>
+                 )}
                  <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">ELITE MEMBER • {user?.email}</p>
                  <div className="mt-4 flex space-x-4 justify-center md:justify-start">
-                    <button className="text-[10px] font-black text-[#0055A4] uppercase tracking-widest hover:underline decoration-2">Edit Profile</button>
+                    <button onClick={() => { setIsEditing(!isEditing); if(!isEditing) setCustomName(displayTitle); }} className="text-[10px] font-black text-[#0055A4] uppercase tracking-widest hover:underline decoration-2">
+                      {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+                    </button>
                     <button className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:underline decoration-2">Privacy Policy</button>
                  </div>
               </div>
@@ -98,8 +124,11 @@ export default function Profile() {
            
            <div className="flex flex-col items-center md:items-end space-y-2">
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">REGISTERED SECURELY VIA SUPABASE</div>
-              <button className="bg-black text-white px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-800 transition-all">
-                 ACTIVE PROFILE
+              <button 
+                onClick={() => setActiveToggle(!activeToggle)}
+                className={`px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-sm ${activeToggle ? 'bg-drip-green text-white hover:bg-green-600' : 'bg-black text-white hover:bg-gray-800'}`}
+              >
+                 {activeToggle ? 'PROFILE ACTIVATED ✓' : 'ACTIVE PROFILE'}
               </button>
            </div>
         </div>

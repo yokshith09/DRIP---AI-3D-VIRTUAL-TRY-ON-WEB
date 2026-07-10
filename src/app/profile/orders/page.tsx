@@ -18,18 +18,6 @@ const MOCK_ORDERS = [
       { id: 'a5', name: 'Retro White Leather Sneakers', brand: 'DRIP Co.', price: '₹ 5,990', size: 'UK 9', color: 'Vintage White', image: '/images/hero/cat-sneakers.png' }
     ],
     total: '₹ 10,490',
-  },
-  {
-    id: 'DRIP-7621B',
-    date: 'May 14, 2026',
-    status: 'Delivered',
-    statusColor: 'text-green-600 bg-green-50 border-green-100',
-    step: 3,
-    deliveryAddress: 'Yoo Jae-Suk, H-12, Sector 15, Gurugram, HR, 122001',
-    items: [
-      { id: 'm12', name: 'Knit Modal Polo', brand: 'Massimo Dutti', price: '₹ 4,990', size: 'L', color: 'Cream', image: '/images/hero/cat-polos.png' }
-    ],
-    total: '₹ 4,990',
   }
 ];
 
