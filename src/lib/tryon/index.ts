@@ -39,11 +39,11 @@ export async function runTryOnWithFallback(
     };
   }
 
-  // Construct fallback chain dynamically based on configured variables
+  // Construct fallback chain dynamically based on configured variables (Prioritizing HF and PiAPI over Replicate)
   const chain: Provider[] = forceProvider ? [forceProvider] : [
-    ...(process.env.REPLICATE_API_TOKEN ? ['replicate' as Provider] : []),
     ...(process.env.HF_TOKEN            ? ['huggingface' as Provider] : []),
     ...(process.env.PIAPI_KEY           ? ['kling' as Provider] : []),
+    ...(process.env.REPLICATE_API_TOKEN ? ['replicate' as Provider] : []),
   ];
 
   console.log(`[TryOn] Commencing fallback pipeline. Sequence: ${chain.join(' → ')}`);
