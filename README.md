@@ -19,6 +19,16 @@ DRIP is a premium, contemporary fast-fashion e-commerce platform featuring an in
 
 ---
 
+## 🔒 Authentication & Security Architecture (OWASP Compliant)
+
+To protect user data and prevent malicious abuse (e.g., API credit draining), DRIP enforces a strict security perimeter:
+* **Session Middleware**: Global Next.js middleware (`src/middleware.ts`) utilizing `@supabase/ssr` to securely parse HTTP-only cookies, intercepting unauthenticated traffic.
+* **API Route Protection**: Backend routes (like `/api/try-on`) enforce server-side session validation. Requests without a valid login context are immediately rejected with `401 Unauthorized`.
+* **Rate-Limited Email/Password Auth**: Resolves Supabase's free-tier OTP limits (3/hour) by falling back to standard password registration (`src/app/login/page.tsx`), supplemented with UI-level artificial delays to thwart basic timing and brute-force attacks.
+* **Generic Error Handling**: Auth flows intentionally return generic errors (e.g., "Invalid login credentials") to prevent malicious email enumeration.
+
+---
+
 ## ⚡ Core Features & Folder Navigation
 
 ### 1. 3D Trial Studio (Avatar Studio)
