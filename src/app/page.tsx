@@ -168,7 +168,15 @@ export default function Home() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setTryOnOpen(true);
+                    setTryOnProduct({
+                      id: `collection-${i}`,
+                      name: `${cat.name} Style Preview`,
+                      brand: 'DRIP Collections',
+                      price: '₹ 2,499',
+                      image: cat.img,
+                      rating: 4.8,
+                      reviews: '150'
+                    } as any);
                   }}
                   className="absolute top-4 right-4 bg-black/65 backdrop-blur-md text-white border border-white/15 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest z-10 shadow-sm hover:bg-drip-coral hover:border-drip-coral transition-colors"
                 >
