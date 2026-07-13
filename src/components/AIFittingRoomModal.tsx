@@ -248,9 +248,10 @@ export default function AIFittingRoomModal({
     try {
       const res = await fetch('/api/try-on', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          modelImage: userPhoto,
+          personImage: userPhoto,
           garmentImage: selectedGarment.image,
         }),
       });
@@ -258,7 +259,12 @@ export default function AIFittingRoomModal({
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete virtual fitting');
+        const errorMsg = data.error || `Server returned ${res.status}`;
+        throw new Error(errorMsg);
+      }
+
+      if (!data.resultUrl) {
+        throw new Error('API returned success but no result image URL.');
       }
 
       setResult(data.resultUrl);
@@ -275,7 +281,7 @@ export default function AIFittingRoomModal({
       console.error('[TRY-ON] API route error:', err);
       setError(err.message || 'GPU allocation error. Please retry.');
       setStatus('idle');
-      setWizardStep('USER_PHOTO'); // Fallback back to upload screen so they can retry
+      setWizardStep('GARMENT'); // Go back to garment selection so user can retry without re-uploading
     }
   };
 

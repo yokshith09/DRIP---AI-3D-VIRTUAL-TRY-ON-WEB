@@ -103,16 +103,21 @@ export default function AvatarStudio() {
     try {
       const res = await fetch('/api/try-on', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          modelImage: baseImage,
+          personImage: baseImage,
           garmentImage: product.image,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to drape garment');
+        throw new Error(data.error || `Server returned ${res.status}`);
+      }
+
+      if (!data.resultUrl) {
+        throw new Error('API returned success but no result image.');
       }
 
       setFittedResult(data.resultUrl);

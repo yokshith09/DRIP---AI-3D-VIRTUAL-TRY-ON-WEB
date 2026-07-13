@@ -1,42 +1,17 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { runTryOnWithFallback } from '@/lib/tryon';
 import { createClient } from '@/lib/supabase/server';
-
-// Helper to convert local relative path to base64 for cloud providers
-function getLocalImageAsBase64(relativeUrl: string): string | null {
-  try {
-    const cleanPath = relativeUrl.startsWith('/') ? relativeUrl.slice(1) : relativeUrl;
-    const absolutePath = path.join(process.cwd(), 'public', cleanPath);
-    
-    if (fs.existsSync(absolutePath)) {
-      const fileBuffer = fs.readFileSync(absolutePath);
-      const ext = path.extname(absolutePath).toLowerCase();
-      let mimeType = 'image/png';
-      if (ext === '.jpg' || ext === '.jpeg') {
-        mimeType = 'image/jpeg';
-      } else if (ext === '.webp') {
-        mimeType = 'image/webp';
-      }
-      return `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
-    }
-  } catch (error) {
-    console.error('Error reading local image:', error);
-  }
-  return null;
-}
 
 export async function POST(req: Request) {
   try {
     // 1. Enforce strict server-side API Route Protection
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (!user) {
-      console.warn('[SECURITY] Blocked unauthorized Try-On API request. No valid session found.');
+      console.warn('[API TRY-ON] Auth check failed:', authError?.message || 'No session');
       return NextResponse.json(
-        { error: 'Unauthorized. You must be securely logged in to use the AI Virtual Try-On.' },
+        { success: false, error: `Authentication required. ${authError?.message || 'Please log in and try again.'}` },
         { status: 401 }
       );
     }
@@ -50,39 +25,39 @@ export async function POST(req: Request) {
 
     if (!personImage) {
       return NextResponse.json(
-        { error: 'User body photo (personImage or modelImage) is required.' },
+        { success: false, error: 'Missing required field: personImage (user body photo).' },
         { status: 400 }
       );
     }
 
     if (!garmentImage) {
       return NextResponse.json(
-        { error: 'Garment image (garmentImage) is required.' },
+        { success: false, error: 'Missing required field: garmentImage.' },
         { status: 400 }
       );
     }
 
-    // Process garment image: if it's a relative path, convert to server-side base64
-    let processedGarmentImage = garmentImage;
-    if (garmentImage.startsWith('/') && !garmentImage.startsWith('data:')) {
-      const base64Garment = getLocalImageAsBase64(garmentImage);
-      if (base64Garment) {
-        processedGarmentImage = base64Garment;
-      } else {
-        return NextResponse.json(
-          { error: `Garment image file not found on server: ${garmentImage}` },
-          { status: 400 }
-        );
-      }
-    }
+    // Log image type info for debugging
+    const personImgType = personImage.startsWith('data:') ? 'base64' : personImage.startsWith('http') ? 'URL' : 'unknown';
+    const garmentImgType = garmentImage.startsWith('data:') ? 'base64' : garmentImage.startsWith('http') ? 'URL' : 'unknown';
+    console.log(`[API TRY-ON] Person image type: ${personImgType}, Garment image type: ${garmentImgType}`);
+    console.log(`[API TRY-ON] Dispatching to multi-provider orchestrator (Category: ${garmentType})...`);
 
-    console.log(`[API TRY-ON] Dispatching request to multi-provider orchestrator (Garment Category: ${garmentType})...`);
+    // Check which API keys are configured
+    const configuredKeys = [
+      process.env.HF_TOKEN ? 'HF_TOKEN' : null,
+      process.env.PIAPI_KEY ? 'PIAPI_KEY' : null,
+      process.env.REPLICATE_API_TOKEN ? 'REPLICATE_API_TOKEN' : null,
+    ].filter(Boolean);
+    console.log(`[API TRY-ON] Configured API keys: ${configuredKeys.length > 0 ? configuredKeys.join(', ') : 'NONE (simulation mode)'}`);
     
     const result = await runTryOnWithFallback({
       personImage,
-      garmentImage: processedGarmentImage,
-      garmentType: garmentType,
+      garmentImage,
+      garmentType,
     });
+
+    console.log(`[API TRY-ON] ✓ Completed via ${result.provider} in ${result.durationMs}ms (fallback used: ${result.fallbackUsed})`);
 
     return NextResponse.json({
       success: true,
@@ -92,9 +67,10 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('[API TRY-ON] General route failure:', error);
+    console.error('[API TRY-ON] Route-level failure:', error?.message || error);
+    console.error('[API TRY-ON] Stack:', error?.stack);
     return NextResponse.json(
-      { success: false, error: error.message || 'Something went wrong during try-on processing' },
+      { success: false, error: error.message || 'Internal server error during try-on processing.' },
       { status: 500 }
     );
   }
