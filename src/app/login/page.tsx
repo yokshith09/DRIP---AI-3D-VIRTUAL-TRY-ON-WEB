@@ -24,20 +24,35 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+
   // 1. STANDARD PASSWORD LOGIN
   const handlePasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email) return;
     
     setIsLoading(true);
     setError(null);
+    setSuccessMsg(null);
     
     // SECURITY: Artificial delay to mitigate timing attacks / simple brute forcing
     await new Promise(res => setTimeout(res, 800));
 
     try {
-      if (isRegistering) {
+      if (isForgotPassword) {
+        // Handle Password Reset
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/profile/security`,
+        });
+        if (error) throw error;
+        setSuccessMsg('Password reset link sent to your email.');
+      } else if (isRegistering) {
         // Handle Signup
+        if (!password) {
+           setError("Password is required.");
+           setIsLoading(false);
+           return;
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -63,6 +78,11 @@ export default function Login() {
         }
         router.refresh();
       } else {
+        if (!password) {
+           setError("Password is required.");
+           setIsLoading(false);
+           return;
+        }
         // Handle Login
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -85,6 +105,8 @@ export default function Login() {
       if (isRegistering) {
         // Show real errors during registration so users know what to fix
         setError(err.message || 'Registration failed. Please try again.');
+      } else if (isForgotPassword) {
+        setError(err.message || 'Failed to send reset link.');
       } else {
         // SECURITY: Generic error message (OWASP Best Practice) for logins
         setError('Invalid login credentials or account does not exist.');
@@ -99,6 +121,7 @@ export default function Login() {
     if (!email) return;
     setIsLoading(true);
     setError(null);
+    setSuccessMsg(null);
     
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -118,6 +141,7 @@ export default function Login() {
   const handleVerifyOtp = async () => {
     setIsLoading(true);
     setError(null);
+    setSuccessMsg(null);
     try {
       const token = otp.join('');
       const { error } = await supabase.auth.verifyOtp({
@@ -173,10 +197,10 @@ export default function Login() {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-display text-drip-dark mb-1">
-                {isRegistering ? 'Create Account' : 'Welcome Back'}
+                {isForgotPassword ? 'Reset Password' : (isRegistering ? 'Create Account' : 'Welcome Back')}
               </h2>
               <p className="text-xs text-gray-500">
-                {isRegistering ? 'Register to access the Virtual Try-On and save styles.' : 'Sign in to access your secure Vault.'}
+                {isForgotPassword ? 'Enter your email to receive a reset link.' : (isRegistering ? 'Register to access the Virtual Try-On and save styles.' : 'Sign in to access your secure Vault.')}
               </p>
             </div>
 
@@ -196,21 +220,26 @@ export default function Login() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-drip-muted uppercase tracking-wider mb-2">Password</label>
-                <div className="flex bg-white rounded-xl border border-gray-200 overflow-hidden focus-within:border-black transition-colors px-4 py-3.5 items-center">
-                  <Lock className="w-4 h-4 text-gray-400 mr-3" />
-                  <input 
-                    type="password" 
-                    placeholder="••••••••"
-                    className="w-full text-sm focus:outline-none"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
+              {!isForgotPassword && (
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="block text-[10px] font-bold text-drip-muted uppercase tracking-wider">Password</label>
+                    <button type="button" onClick={() => {setIsForgotPassword(true); setIsRegistering(false);}} className="text-[10px] font-bold text-drip-coral hover:text-black uppercase tracking-wider">Forgot?</button>
+                  </div>
+                  <div className="flex bg-white rounded-xl border border-gray-200 overflow-hidden focus-within:border-black transition-colors px-4 py-3.5 items-center">
+                    <Lock className="w-4 h-4 text-gray-400 mr-3" />
+                    <input 
+                      type="password" 
+                      placeholder="••••••••"
+                      className="w-full text-sm focus:outline-none"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required={!isForgotPassword}
+                      minLength={6}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {error && (
                 <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-xs font-medium flex items-center space-x-2">
@@ -229,26 +258,35 @@ export default function Login() {
                 disabled={isLoading}
                 className="w-full py-4 rounded-xl font-bold tracking-widest uppercase text-xs flex justify-center items-center transition-all bg-black text-white hover:bg-drip-coral shadow-md disabled:opacity-50 mt-2"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{isRegistering ? 'Register Securely' : 'Sign In Securely'} <ArrowRight className="w-3.5 h-3.5 ml-2" /></>}
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{isForgotPassword ? 'Send Reset Link' : (isRegistering ? 'Register Securely' : 'Sign In Securely')} <ArrowRight className="w-3.5 h-3.5 ml-2" /></>}
               </button>
             </form>
 
             <div className="flex items-center justify-between text-xs font-semibold px-1">
               <button 
                 type="button" 
-                onClick={() => setIsRegistering(!isRegistering)}
+                onClick={() => {
+                   if (isForgotPassword) {
+                      setIsForgotPassword(false);
+                      setIsRegistering(false);
+                   } else {
+                      setIsRegistering(!isRegistering);
+                   }
+                }}
                 className="text-drip-muted hover:text-black transition-colors"
               >
-                {isRegistering ? 'Already have an account?' : 'Need an account?'}
+                {isForgotPassword ? 'Back to Login' : (isRegistering ? 'Already have an account?' : 'Need an account?')}
               </button>
-              <button 
-                type="button" 
-                onClick={handleSendOtp}
-                disabled={!email || isLoading}
-                className={`transition-colors ${email ? 'text-drip-coral hover:text-black' : 'text-gray-300 cursor-not-allowed'}`}
-              >
-                Login via OTP
-              </button>
+              {!isForgotPassword && (
+                <button 
+                  type="button" 
+                  onClick={handleSendOtp}
+                  disabled={!email || isLoading}
+                  className={`transition-colors ${email ? 'text-drip-coral hover:text-black' : 'text-gray-300 cursor-not-allowed'}`}
+                >
+                  Login via OTP
+                </button>
+              )}
             </div>
           </div>
         ) : (

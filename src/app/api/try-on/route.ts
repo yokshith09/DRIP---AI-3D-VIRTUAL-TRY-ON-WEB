@@ -60,6 +60,16 @@ export async function POST(req: Request) {
       );
     }
 
+    const isAdmin = user.email === 'admin@drip.com';
+    const tryonsUsed = user.user_metadata?.tryons_used || 0;
+
+    if (!isAdmin && tryonsUsed >= 2) {
+      return NextResponse.json(
+        { success: false, error: 'You have reached your limit of 2 free virtual try-ons.' },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     
     // Support both 'personImage' (new) and 'modelImage' (old) variable keys
@@ -104,6 +114,18 @@ export async function POST(req: Request) {
     });
 
     console.log(`[API TRY-ON] ✓ Completed via ${result.provider} in ${result.durationMs}ms (fallback used: ${result.fallbackUsed})`);
+
+    // Increment usage using Admin SDK if not admin
+    if (!isAdmin && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const { createClient: createSupabaseJs } = await import('@supabase/supabase-js');
+      const adminAuthClient = createSupabaseJs(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+      await adminAuthClient.auth.admin.updateUserById(user.id, {
+        user_metadata: { tryons_used: tryonsUsed + 1 }
+      });
+    }
 
     return NextResponse.json({
       success: true,

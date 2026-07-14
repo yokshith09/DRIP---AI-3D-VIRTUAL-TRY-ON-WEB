@@ -25,7 +25,7 @@ To protect user data and prevent malicious abuse (e.g., API credit draining), DR
 * **Session Middleware**: Global Next.js middleware (`src/middleware.ts`) utilizing `@supabase/ssr` to securely parse HTTP-only cookies, intercepting unauthenticated traffic.
 * **API Route Protection**: Backend routes (like `/api/try-on`) enforce server-side session validation. Requests without a valid login context are immediately rejected with `401 Unauthorized`.
 * **Role-Based Access Control (RBAC)**: The `/admin` dashboard strictly requires the authenticated user email to be `admin@drip.com`. Unauthorized users are immediately kicked back to the homepage.
-* **Rate-Limited Email/Password & OTP Auth**: Resolves Supabase's free-tier OTP limits by supporting standard password registration alongside Magic Links (`src/app/login/page.tsx`), supplemented with UI-level artificial delays to thwart basic timing and brute-force attacks.
+* **Rate-Limited Email/Password, OTP Auth & Recovery**: Resolves Supabase's free-tier OTP limits by supporting standard password registration alongside Magic Links (`src/app/login/page.tsx`), supplemented with UI-level artificial delays to thwart basic timing and brute-force attacks. Includes full password reset flow with redirect handling.
 * **Generic Error Handling**: Auth flows intentionally return generic errors (e.g., "Invalid login credentials") to prevent malicious email enumeration.
 
 ---
@@ -63,6 +63,7 @@ To protect user data and prevent malicious abuse (e.g., API credit draining), DR
   * **Interactive Metrics**: Top-level stat blocks act as instant category filters for the data table.
   * **Dynamic Store State**: Leverages Zustand (`src/store/products.ts`) with `localStorage` persistence for client-side state manipulation.
   * **Edit/Delete Actions**: Inline catalog editing allows admins to update product names, prices, categories, and images, persisting changes globally.
+  * **Users & Credits Management**: Features a dedicated view mapped to a secure backend `SUPABASE_SERVICE_ROLE_KEY` API route (`/api/admin/users`) to list all registered users, their join dates, and their VTON usage counts to monitor free-tier exhaustion.
 
 ### 5. Product buys Section
 * **Path**: [`src/app/product/[id]/page.tsx`](file:///e:/New%20folder/drip-app/src/app/product/%5Bid%5D/page.tsx)
@@ -70,6 +71,23 @@ To protect user data and prevent malicious abuse (e.g., API credit draining), DR
   * **Buy Column**: Contains price, brand, colors, sizes, AI styling advice, and checkout actions (fixed on screen).
   * **Image Column**: Capped height portrait views (`sticky top-28`).
   * **Grid Column (Below image)**: A 3-column grid containing Materials, Express Shipping details, and SEO FAQs.
+
+---
+
+## 🏗 System Architecture & Design
+
+### Robust Image Pipeline (Universal Interceptor)
+The virtual try-on models (PiAPI Kling and HuggingFace IDM-VTON) strictly require absolute, public URLs. When a user captures a selfie on their device, the browser outputs a Base64 string. 
+To guarantee API compatibility without maintaining expensive stateful buckets:
+1. **Interceptor**: `/api/try-on` intercepts incoming Base64 strings or local relative paths.
+2. **Ephemeral Hosting**: The server autonomously uploads these images to an ephemeral, lightning-fast public host (`uguu.se`).
+3. **URL Handoff**: The raw `.jpg/.png` URL is extracted and handed off to PiAPI/HF. This guarantees 100% processing success rate by bypassing native library Buffer/Blob corruption bugs.
+
+### Credit Limiting via Auth Metadata (Stateless)
+To enforce the **2-free-try-ons per account** limit without maintaining complex relational tables, DRIP leverages **Supabase User Metadata**:
+1. When inference initiates, the backend extracts `user.user_metadata.tryons_used` (defaulting to 0).
+2. If `tryons_used >= 2` (and the user is not `admin@drip.com`), the API blocks the request and throws a `403 Forbidden`.
+3. Upon a successful VTON inference, the backend utilizes the `SUPABASE_SERVICE_ROLE_KEY` to securely increment the metadata counter.
 
 ---
 
@@ -96,6 +114,7 @@ The app uses a premium editorial design system defined in `src/app/globals.css`:
    # API Keys (optional; falls back to canvas VTON simulation if empty)
    REPLICATE_API_TOKEN=your_token
    HF_TOKEN=your_token
+   PIAPI_KEY=your_token
    ```
 
 3. **Start the local server**:

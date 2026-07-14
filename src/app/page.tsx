@@ -153,40 +153,7 @@ export default function Home() {
         <button onClick={() => setHeroSlide((p) => (p + 1) % HERO_SLIDES.length)} className="absolute right-5 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/25 transition-all border border-white/15"><ChevronRight className="w-5 h-5" /></button>
       </section>
 
-      {/* ══════ MAIN COLLECTIONS ══════ */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-[1400px] mx-auto px-5 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-            {MAIN_COLLECTIONS.map((cat, i) => (
-              <Link key={i} href={cat.href} className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 shadow-sm border border-gray-100">
-                <Image src={cat.img} alt={cat.name} fill className="object-cover object-top group-hover:scale-110 transition-transform duration-1000" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div className="absolute bottom-0 w-full p-8 text-center translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                  <h3 className="text-white text-xl md:text-2xl font-black uppercase tracking-[0.1em]">{cat.name}</h3>
-                </div>
-                <button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setTryOnProduct({
-                      id: `collection-${i}`,
-                      name: `${cat.name} Style Preview`,
-                      brand: 'DRIP Collections',
-                      price: '₹ 2,499',
-                      image: cat.img,
-                      rating: 4.8,
-                      reviews: '150'
-                    } as any);
-                  }}
-                  className="absolute top-4 right-4 bg-black/65 backdrop-blur-md text-white border border-white/15 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest z-10 shadow-sm hover:bg-drip-coral hover:border-drip-coral transition-colors"
-                >
-                  Interactive Try-On
-                </button>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* ══════ FREE SHIPPING STRIP ══════ */}
       <div className="bg-[#F5F3F0] border-y border-[#EDE9E3] py-4 text-center">

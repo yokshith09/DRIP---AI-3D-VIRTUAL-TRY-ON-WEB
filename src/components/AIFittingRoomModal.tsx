@@ -375,7 +375,7 @@ export default function AIFittingRoomModal({
           {wizardStep === 'USER_PHOTO' && (
             <div className="w-full h-full relative bg-[#0a0b10] flex items-center justify-center">
               {userPhoto ? (
-                <Image src={userPhoto} alt="User silhouette preview" fill className="object-cover" />
+                <Image src={userPhoto} alt="User silhouette preview" fill className="object-contain" />
               ) : (
                 <div className="text-center text-white p-8 space-y-3">
                   <Camera className="w-16 h-16 text-drip-coral/40 mx-auto animate-bounce" />
@@ -420,7 +420,7 @@ export default function AIFittingRoomModal({
                 src={compareMode === 'after' ? resultUrl : userPhoto!} 
                 alt="Fitting visualization" 
                 fill 
-                className="object-cover" 
+                className="object-contain" 
               />
               
               {/* Compare toggle */}

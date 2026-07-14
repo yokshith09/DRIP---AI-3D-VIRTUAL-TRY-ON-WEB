@@ -10,19 +10,6 @@ import { createClient } from '@/lib/supabase/client';
 import { useProductStore } from '@/store/products';
 import { useCartStore } from '@/store/cart';
 
-const BASE_MODELS = [
-  {
-    id: 'male',
-    name: 'Male Model (Alex)',
-    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 'female',
-    name: 'Female Model (Sophia)',
-    img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop'
-  }
-];
-
 export default function AvatarStudio() {
   const router = useRouter();
   const supabase = createClient();
@@ -30,7 +17,7 @@ export default function AvatarStudio() {
   const [progress, setProgress] = useState(0);
   
   // Custom Studio States
-  const [baseImage, setBaseImage] = useState<string>(BASE_MODELS[0].img);
+  const [baseImage, setBaseImage] = useState<string>('');
   const [fittedResult, setFittedResult] = useState<string | null>(null);
   const [activeProduct, setActiveProduct] = useState<any>(null);
   const [fittingStatus, setFittingStatus] = useState<'idle' | 'processing' | 'done' | 'error'>('idle');
@@ -80,7 +67,7 @@ export default function AvatarStudio() {
       setBaseImage(base64);
       setFittedResult(null);
       setActiveProduct(null);
-      setStep('STUDIO'); // Jump straight into Studio with the custom photo
+      setStep('SCANNING'); // Show scanning animation for user photo
     } catch (err) {
       console.error('Base image processing failed:', err);
     }
@@ -88,6 +75,10 @@ export default function AvatarStudio() {
 
   // Run Real VTON draping process
   const triggerFitting = async (product: any) => {
+    if (!baseImage) {
+        alert("Please upload your photo first!");
+        return;
+    }
     setActiveProduct(product);
     
     // Check auth
@@ -126,6 +117,7 @@ export default function AvatarStudio() {
       console.error(err);
       setFitError(err.message || 'GPU allocation timeout. Please try again.');
       setFittingStatus('error');
+      alert(err.message || 'Fitting failed');
     }
   };
 
@@ -220,25 +212,13 @@ export default function AvatarStudio() {
               Using advanced spatial mapping, DRIP AI generates a centimeter-accurate 3D avatar. Try on clothes exactly how they would fit in real life.
             </p>
 
-            {/* Photo Selection Flow */}
-            <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left">
-               <h3 className="text-sm font-bold tracking-widest uppercase mb-4 text-white">Choose Model Base</h3>
-               
-               <div className="grid grid-cols-2 gap-4">
-                 {BASE_MODELS.map(m => (
-                   <button
-                     key={m.id}
-                     onClick={() => {
-                       setBaseImage(m.img);
-                       setStep('SCANNING');
-                     }}
-                     className="relative aspect-[3/4] rounded-xl overflow-hidden border border-white/10 hover:border-drip-coral transition-colors bg-white/5 flex flex-col items-center justify-end p-3 text-center"
-                   >
-                     <Image src={m.img} alt={m.name} fill className="object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                     <span className="relative z-10 text-[10px] font-bold uppercase tracking-wider text-white bg-black/60 px-2 py-1 rounded w-full">{m.name.split(' ')[0]}</span>
-                   </button>
-                 ))}
-               </div>
+            <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left space-y-4">
+               <h3 className="text-sm font-bold tracking-widest uppercase text-white">Guidelines for Best Results</h3>
+               <ul className="text-xs text-white/60 space-y-2 list-disc pl-4">
+                 <li>Ensure clear, well-lit environments.</li>
+                 <li>Upload a full or half-body shot.</li>
+                 <li>Face the camera directly with arms slightly away from your body.</li>
+               </ul>
             </div>
 
             <button 
@@ -246,10 +226,10 @@ export default function AvatarStudio() {
               className="w-full max-w-md bg-white text-drip-navy py-4 rounded-drip-btn font-bold tracking-widest uppercase hover:bg-gray-100 transition-colors flex justify-center items-center shadow-lg mb-4"
             >
               <Camera className="w-5 h-5 mr-3" />
-              Upload Your Own Photo
+              Upload Your Body Photo
             </button>
             
-            <div className="max-w-xs text-[9px] text-white/40 uppercase tracking-wider leading-relaxed">
+            <div className="max-w-xs text-[9px] text-white/40 uppercase tracking-wider leading-relaxed mt-4">
                <p>PRIVACY GUARANTEED. Photos are securely processed on-the-fly and immediately deleted. We do not store your images.</p>
             </div>
         </div>
@@ -297,7 +277,7 @@ export default function AvatarStudio() {
                  src={fittedResult && fittingStatus === 'done' ? fittedResult : baseImage} 
                  alt="Fitting room model" 
                  fill 
-                 className="object-cover" 
+                 className="object-contain" 
                />
 
                {/* Fitting Room Loader */}

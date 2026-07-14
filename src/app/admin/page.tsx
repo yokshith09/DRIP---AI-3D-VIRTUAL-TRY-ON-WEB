@@ -8,12 +8,17 @@ import Footer from '@/components/Footer';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
-import { Trash2, Plus, LogOut, Package, Search, Tag, Settings, SlidersHorizontal, Sparkles, Check, Edit2 } from 'lucide-react';
+import { Trash2, Plus, LogOut, Package, Search, Tag, Settings, SlidersHorizontal, Sparkles, Check, Edit2, Users } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { products, addProduct, updateProduct, deleteProduct, resetProducts } = useProductStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+  
+  // View mode
+  const [viewMode, setViewMode] = useState<'catalog' | 'users'>('catalog');
+  const [users, setUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   
   // Edit Mode state
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -45,6 +50,26 @@ export default function AdminDashboard() {
     };
     checkAuth();
   }, [router]);
+
+  useEffect(() => {
+    if (viewMode === 'users') {
+      const fetchUsers = async () => {
+        setLoadingUsers(true);
+        try {
+          const res = await fetch('/api/admin/users');
+          const data = await res.json();
+          if (data.users) {
+             setUsers(data.users);
+          }
+        } catch (err) {
+          console.error('Failed to fetch users', err);
+        } finally {
+          setLoadingUsers(false);
+        }
+      };
+      fetchUsers();
+    }
+  }, [viewMode]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -198,16 +223,35 @@ export default function AdminDashboard() {
             <span className="text-[10px] text-[#7A0C16] font-black uppercase tracking-[0.3em]">Atelier Control Center</span>
             <h1 className="text-3xl font-display font-bold text-gray-900 leading-none mt-1">Admin Curation Dashboard</h1>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center space-x-2 border border-gray-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            <div className="flex bg-gray-100 p-1 rounded-xl">
+              <button
+                onClick={() => setViewMode('catalog')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${viewMode === 'catalog' ? 'bg-white shadow-sm text-black' : 'text-gray-500 hover:text-black'}`}
+              >
+                Store Catalog
+              </button>
+              <button
+                onClick={() => setViewMode('users')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center space-x-1 ${viewMode === 'users' ? 'bg-white shadow-sm text-black' : 'text-gray-500 hover:text-black'}`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Users & Credits</span>
+              </button>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="flex items-center space-x-2 border border-gray-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
 
-        {/* Database Metrics Grid */}
+        {viewMode === 'catalog' ? (
+          <>
+            {/* Database Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           {[
             { label: 'Shirts & Polos', filterValue: 'Shirts', count: shirtsCount },
@@ -465,6 +509,56 @@ export default function AdminDashboard() {
           </div>
 
         </div>
+        </>
+        ) : (
+          <div className="bg-white border border-gray-150 p-6 rounded-3xl shadow-sm space-y-6 min-h-[500px]">
+             <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+                <h3 className="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center">
+                  <Users className="w-4 h-4 mr-2 text-[#7A0C16]" />
+                  <span>Registered Users & Credits</span>
+                </h3>
+             </div>
+             
+             {loadingUsers ? (
+                <div className="flex items-center justify-center h-64 text-gray-400 font-bold uppercase tracking-wider text-xs">
+                   Loading Users...
+                </div>
+             ) : (
+                <div className="overflow-y-auto max-h-[600px] border border-gray-100 rounded-2xl hide-scrollbar">
+                   <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                         <tr className="bg-gray-50 border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                            <th className="p-4">User ID</th>
+                            <th className="p-4">Email</th>
+                            <th className="p-4">Joined</th>
+                            <th className="p-4 text-center">Try-Ons Used</th>
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-150">
+                         {users.length === 0 ? (
+                            <tr>
+                               <td colSpan={4} className="p-10 text-center text-gray-400 font-bold uppercase tracking-wider">No users found</td>
+                            </tr>
+                         ) : (
+                            users.map(u => (
+                               <tr key={u.id} className="hover:bg-gray-50/50">
+                                  <td className="p-4 font-mono text-gray-500 text-[10px]">{u.id.split('-')[0]}...</td>
+                                  <td className="p-4 font-bold text-gray-800">{u.email}</td>
+                                  <td className="p-4 text-gray-500 font-medium">{new Date(u.created_at).toLocaleDateString()}</td>
+                                  <td className="p-4 text-center">
+                                     <span className={`px-2 py-1 rounded-md font-black ${u.tryons_used >= 2 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                        {u.tryons_used} / 2
+                                     </span>
+                                  </td>
+                               </tr>
+                            ))
+                         )}
+                      </tbody>
+                   </table>
+                </div>
+             )}
+          </div>
+        )}
 
       </div>
 
