@@ -7,12 +7,14 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
 
     // Check if the requester is the admin
-    if (!user || user.email !== 'admin@drip.com') {
+    if (!user || user.email?.toLowerCase() !== 'admin@drip.com') {
+      console.log('Unauthorized access attempt by:', user?.email);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-       return NextResponse.json({ error: 'Missing service role key' }, { status: 500 });
+       console.error('Missing SUPABASE_SERVICE_ROLE_KEY in environment');
+       return NextResponse.json({ error: 'Missing service role key. Please set it in your environment variables.' }, { status: 500 });
     }
 
     // Initialize admin client to list users

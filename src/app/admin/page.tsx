@@ -19,6 +19,7 @@ export default function AdminDashboard() {
   const [viewMode, setViewMode] = useState<'catalog' | 'users'>('catalog');
   const [users, setUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
   
   // Edit Mode state
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -58,11 +59,16 @@ export default function AdminDashboard() {
         try {
           const res = await fetch('/api/admin/users');
           const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to fetch users');
+          }
           if (data.users) {
              setUsers(data.users);
+             setUsersError(null);
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error('Failed to fetch users', err);
+          setUsersError(err.message);
         } finally {
           setLoadingUsers(false);
         }
@@ -522,6 +528,11 @@ export default function AdminDashboard() {
              {loadingUsers ? (
                 <div className="flex items-center justify-center h-64 text-gray-400 font-bold uppercase tracking-wider text-xs">
                    Loading Users...
+                </div>
+             ) : usersError ? (
+                <div className="flex flex-col items-center justify-center h-64 space-y-2">
+                   <span className="text-red-500 font-bold uppercase tracking-wider text-xs">Failed to load users</span>
+                   <p className="text-gray-500 text-xs">{usersError}</p>
                 </div>
              ) : (
                 <div className="overflow-y-auto max-h-[600px] border border-gray-100 rounded-2xl hide-scrollbar">
