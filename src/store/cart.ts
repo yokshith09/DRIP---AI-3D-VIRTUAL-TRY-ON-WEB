@@ -30,31 +30,7 @@ const syncToSupabase = async (items: CartItem[]) => {
 export const useCartStore = create<CartStore>()(
   persist(
     (set) => ({
-      items: [
-        { 
-          id: 'a5', // Retro White Leather Sneakers from our new products
-          brand: 'DRIP Co.', 
-          name: 'Retro White Leather Sneakers', 
-          price: 5990, 
-          originalPrice: 7990,
-          size: 'UK 9', 
-          color: 'Vintage White', 
-          qty: 1, 
-          image: '/images/hero/cat-sneakers.png',
-          inStock: true
-        },
-        { 
-          id: 'w4', // Ribbed Knit Polo from our new products
-          brand: 'Reformation', 
-          name: 'Ribbed Knit Polo', 
-          price: 6200, 
-          size: 'M', 
-          color: 'Oatmeal', 
-          qty: 1, 
-          image: '/images/hero/cat-women-tops.png',
-          inStock: true
-        }
-      ],
+      items: [],
       
       addItem: (item) => set((state) => {
         let newItems;

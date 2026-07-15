@@ -165,7 +165,31 @@ export default function AIFittingRoomModal({
     if (!file) return;
 
     setStatus('uploading');
+    setError(null);
+
     try {
+      // Create a temporary image to validate dimensions
+      const objectUrl = URL.createObjectURL(file);
+      const img = new window.Image();
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = objectUrl;
+      });
+      URL.revokeObjectURL(objectUrl);
+
+      const ratio = img.height / img.width;
+      
+      // Determine if garment is lower body (e.g. pants, jeans, shorts)
+      const isLowerBody = /pant|jean|short|trouser|skirt/i.test(selectedGarment.name);
+
+      if (isLowerBody && ratio < 1.3) {
+        throw new Error('For pants/bottoms, please upload a full-body portrait photo.');
+      } else if (ratio < 1.0) {
+        throw new Error('Invalid format. Please upload a portrait photo (height >= width) where your face and body are clearly visible.');
+      }
+
       const options = {
         maxSizeMB: 0.8,
         maxWidthOrHeight: 1024,

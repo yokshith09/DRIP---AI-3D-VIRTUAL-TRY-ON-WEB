@@ -57,6 +57,24 @@ export default function AvatarStudio() {
     if (!file) return;
 
     try {
+      // Create a temporary image to validate dimensions
+      const objectUrl = URL.createObjectURL(file);
+      const img = new window.Image();
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = objectUrl;
+      });
+      URL.revokeObjectURL(objectUrl);
+
+      const ratio = img.height / img.width;
+
+      if (ratio < 1.0) {
+        alert('Invalid format. Please upload a portrait photo (height >= width) where your face and body are clearly visible.');
+        return;
+      }
+
       const options = {
         maxSizeMB: 0.8,
         maxWidthOrHeight: 1024,
