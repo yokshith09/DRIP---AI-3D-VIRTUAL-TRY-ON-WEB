@@ -35,12 +35,14 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Basic Route Protection
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/profile');
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/profile') || request.nextUrl.pathname.startsWith('/avatar-studio');
   
   if (isProtectedRoute && !user) {
     // Redirect unauthenticated users trying to access protected routes to login
     const url = request.nextUrl.clone();
     url.pathname = '/login';
+    // Append redirect param so they return to where they were headed
+    url.searchParams.set('redirect', request.nextUrl.pathname.slice(1));
     return NextResponse.redirect(url);
   }
 

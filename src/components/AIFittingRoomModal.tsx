@@ -122,26 +122,37 @@ export default function AIFittingRoomModal({
   // Reset states on open
   useEffect(() => {
     if (isOpen) {
-      setWizardStep('USER_PHOTO');
-      setSelectedGarment({
-        id: 'current',
-        image: productImage,
-        name,
-        brand,
-        price,
-        priceString: `₹ ${price.toLocaleString('en-IN')}`
-      });
-      setGarmentTab('CURRENT');
-      setImportUrl('');
-      setImportError('');
-      reset();
+      // Auth Guard: Instantly redirect unauthenticated users
+      const checkAuth = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          onClose();
+          router.push('/login?redirect=avatar-studio');
+          return;
+        }
+        
+        setWizardStep('USER_PHOTO');
+        setSelectedGarment({
+          id: 'current',
+          image: productImage,
+          name,
+          brand,
+          price,
+          priceString: `₹ ${price.toLocaleString('en-IN')}`
+        });
+        setGarmentTab('CURRENT');
+        setImportUrl('');
+        setImportError('');
+        reset();
+        
+        if (typeof window !== 'undefined') {
+          const count = parseInt(localStorage.getItem('drip_tryon_count') || '0', 10);
+          setTryOnCount(count);
+          setIsPremium(localStorage.getItem('drip_premium') === 'true');
+        }
+      };
       
-      if (typeof window !== 'undefined') {
-        const count = parseInt(localStorage.getItem('drip_tryon_count') || '0', 10);
-        setTryOnCount(count);
-        const premium = localStorage.getItem('drip_is_premium') === 'true';
-        setIsPremium(premium);
-      }
+      checkAuth();
     }
   }, [isOpen, productImage, name, brand, price, reset]);
 
