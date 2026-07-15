@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sparkles, Star, Heart, SlidersHorizontal, ChevronRight, Scissors } from 'lucide-react';
@@ -106,12 +106,18 @@ export default function CollectionPage() {
   if (category === 'women') category = 'womens';
 
   const { products } = useProductStore();
-  const allProducts: (Product & { subcategory?: string })[] = products.filter(
+  const [isMounted, setIsMounted] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('All');
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const allProducts: (Product & { subcategory?: string })[] = isMounted ? products.filter(
     (p) => p.category === category
-  );
+  ) : [];
 
   const sections = SECTION_MAP[category] ?? ['Shirts', 'Pants', 'Jeans', 'Polos'];
-  const [activeSection, setActiveSection] = useState<string>('All');
 
   const displayedProducts =
     activeSection === 'All'

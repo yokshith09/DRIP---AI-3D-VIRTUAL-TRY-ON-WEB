@@ -91,13 +91,18 @@ const CollectionGrid = ({ collections, dark = false }: { collections: any[], dar
 
 export default function Home() {
   const { products } = useProductStore();
+  const [isMounted, setIsMounted] = useState(false);
   const [heroSlide, setHeroSlide] = useState(0);
   const [tryOnProduct, setTryOnProduct] = useState<any>(null);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Dynamic filter lists from store
-  const MENS_PRODUCTS = products.filter(p => p.category === 'mens' && p.subcategory !== 'Sneakers').slice(0, 4);
-  const WOMENS_PRODUCTS = products.filter(p => p.category === 'womens').slice(0, 4);
-  const SNEAKER_PRODUCTS = products.filter(p => p.subcategory === 'Sneakers').slice(0, 4);
+  const MENS_PRODUCTS = isMounted ? products.filter(p => p.category === 'mens' && p.subcategory !== 'Sneakers').slice(0, 4) : [];
+  const WOMENS_PRODUCTS = isMounted ? products.filter(p => p.category === 'womens').slice(0, 4) : [];
+  const SNEAKER_PRODUCTS = isMounted ? products.filter(p => p.subcategory === 'Sneakers').slice(0, 4) : [];
 
   useEffect(() => {
     const t = setInterval(() => setHeroSlide((s) => (s + 1) % HERO_SLIDES.length), 5000);

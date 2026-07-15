@@ -67,10 +67,15 @@ export default function ProductDetail() {
   const params = useParams();
   const id = (params?.id as string) || 'm1';
   
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const { products } = useProductStore();
   
   // Find product from dataset
-  const product = products.find(p => p.id === id) || products[0];
+  const product = (isMounted ? products.find(p => p.id === id) : null) || products[0];
 
   const { addItem } = useCartStore();
   const { dna } = useStyleDNAStore();
