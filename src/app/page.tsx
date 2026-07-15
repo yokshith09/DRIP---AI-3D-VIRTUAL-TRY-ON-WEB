@@ -280,7 +280,7 @@ export default function Home() {
         {ACCESSORIES_PRODUCTS.length > 0 ? (
           <div className="max-w-[1400px] mx-auto px-5 md:px-12">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {ACCESSORIES_PRODUCTS.map(p => <ProductCard key={p.id} product={p as any} onTryOn={setTryOnProduct} dark={true} />)}
+              {ACCESSORIES_PRODUCTS.map(p => <ProductCard key={p.id} product={p as any} onTryOn={setTryOnProduct} />)}
             </div>
             <div className="mt-12 text-center">
               <Link href="/collections/accessories" className="inline-block bg-white text-black px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-drip-coral hover:text-white transition-colors shadow-lg">View All Accessories</Link>
