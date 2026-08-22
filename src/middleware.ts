@@ -29,21 +29,26 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // refreshing the auth token
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   // Basic Route Protection
   const isProtectedRoute = request.nextUrl.pathname.startsWith('/profile') || request.nextUrl.pathname.startsWith('/avatar-studio');
   
-  if (isProtectedRoute && !user) {
-    // Redirect unauthenticated users trying to access protected routes to login
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    // Append redirect param so they return to where they were headed
-    url.searchParams.set('redirect', request.nextUrl.pathname.slice(1));
-    return NextResponse.redirect(url);
+  if (isProtectedRoute) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      // Redirect unauthenticated users trying to access protected routes to login
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      // Append redirect param so they return to where they were headed
+      url.searchParams.set('redirect', request.nextUrl.pathname.slice(1));
+      return NextResponse.redirect(url);
+    }
+  } else {
+    // For non-protected routes, just use getSession to refresh the token if needed 
+    // without forcing a network request to the Supabase Auth server.
+    await supabase.auth.getSession();
   }
 
   return supabaseResponse;
