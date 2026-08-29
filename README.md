@@ -33,7 +33,7 @@ To protect user data and prevent malicious abuse (e.g., API credit draining), DR
 ## ⚡ Core Features & Folder Navigation
 
 ### 1. 3D Trial Studio (Avatar Studio)
-* **Path**: [`src/app/avatar-studio/page.tsx`](file:///e:/New%20folder/drip-app/src/app/avatar-studio/page.tsx)
+* **Path**: [`src/app/avatar-studio/page.tsx`](src/app/avatar-studio/page.tsx)
 * **Description**: The core fitting room sandbox. Supports:
   * Male (Alex) and Female (Sophia) base models.
   * Custom body photo upload (integrated with automatic client-side compression).
@@ -41,9 +41,9 @@ To protect user data and prevent malicious abuse (e.g., API credit draining), DR
   * Draping trigger states feeding garment coordinates to VTON API.
 
 ### 2. Custom Product URL Importer
-* **API Path**: [`src/app/api/import-product/route.ts`](file:///e:/New%20folder/drip-app/src/app/api/import-product/route.ts)
+* **API Path**: [`src/app/api/import-product/route.ts`](src/app/api/import-product/route.ts)
 * **Studio Drawer Entry**: Wardrobe panel $\rightarrow$ `Custom Imports` tab $\rightarrow$ `Import URL` card.
-* **Description**: Let's users scan and import garments from H&M, Zara, Nike, or any fashion retailer by pasting a product link. The scraper grabs details and places the custom dress in the user's try-on closet.
+* **Description**: Lets users scan and import garments from H&M, Zara, Nike, or any fashion retailer by pasting a product link. The scraper grabs details and places the custom dress in the user's try-on closet.
 
 #### Scraper Security Architecture:
 * **SSRF Mitigation**: Runs a DNS lookup on hostnames prior to fetching, blocking all local, private, loopback (`127.0.0.0/8`, `10.0.0.0/8`, `192.168.0.0/16`), and link-local (AWS metadata `169.254.169.254`) ranges.
@@ -53,20 +53,20 @@ To protect user data and prevent malicious abuse (e.g., API credit draining), DR
 * **XSS Mitigation**: Sanitizes scraped names (stripping HTML tags) and validates that the scraped image URL matches a secure `http:`/`https:` protocol.
 
 ### 3. Style DNA Blueprint
-* **Page Path**: [`src/app/profile/style-dna/page.tsx`](file:///e:/New%20folder/drip-app/src/app/profile/style-dna/page.tsx)
-* **Component Path**: [`src/components/StyleDNAOnboarding.tsx`](file:///e:/New%20folder/drip-app/src/components/StyleDNAOnboarding.tsx)
+* **Page Path**: [`src/app/profile/style-dna/page.tsx`](src/app/profile/style-dna/page.tsx)
+* **Component Path**: [`src/components/StyleDNAOnboarding.tsx`](src/components/StyleDNAOnboarding.tsx)
 * **Description**: A multi-step styling scanner wizard. Captures shoulder/hip dimensions via digital tailor calipers, scans skin undertones, style vibes (minimalist, streetwear, classic, bohemian), and budget bounds. Generates a blueprint card and filters the catalog for personalized matches using `src/lib/productMatcher.ts`.
 
 ### 4. Admin Curation Dashboard (CRUD)
-* **Path**: [`src/app/admin/page.tsx`](file:///e:/New%20folder/drip-app/src/app/admin/page.tsx)
+* **Path**: [`src/app/admin/page.tsx`](src/app/admin/page.tsx)
 * **Description**: A fully functional, interactive catalog management system restricted to administrators.
   * **Interactive Metrics**: Top-level stat blocks act as instant category filters for the data table.
   * **Dynamic Store State**: Leverages Zustand (`src/store/products.ts`) with `localStorage` persistence for client-side state manipulation.
   * **Edit/Delete Actions**: Inline catalog editing allows admins to update product names, prices, categories, and images, persisting changes globally.
   * **Users & Credits Management**: Features a dedicated view mapped to a secure backend `SUPABASE_SERVICE_ROLE_KEY` API route (`/api/admin/users`) to list all registered users, their join dates, and their VTON usage counts to monitor free-tier exhaustion.
 
-### 5. Product buys Section
-* **Path**: [`src/app/product/[id]/page.tsx`](file:///e:/New%20folder/drip-app/src/app/product/%5Bid%5D/page.tsx)
+### 5. Product Details Section
+* **Path**: [`src/app/product/[id]/page.tsx`](src/app/product/[id]/page.tsx)
 * **Description**: The e-commerce details page. Employs a scrolling-free design:
   * **Buy Column**: Contains price, brand, colors, sizes, AI styling advice, and checkout actions (fixed on screen).
   * **Image Column**: Capped height portrait views (`sticky top-28`).
@@ -80,7 +80,7 @@ To protect user data and prevent malicious abuse (e.g., API credit draining), DR
 The virtual try-on models (PiAPI Kling and HuggingFace IDM-VTON) strictly require absolute, public URLs. When a user captures a selfie on their device, the browser outputs a Base64 string. 
 To guarantee API compatibility without maintaining expensive stateful buckets:
 1. **Interceptor**: `/api/try-on` intercepts incoming Base64 strings or local relative paths.
-2. **Ephemeral Hosting**: The server autonomously uploads these images to an ephemeral, lightning-fast public host (`uguu.se`).
+2. **Ephemeral Hosting**: The server autonomously uploads these images to an ephemeral public host (`uguu.se`) with strict timeout protections.
 3. **URL Handoff**: The raw `.jpg/.png` URL is extracted and handed off to PiAPI/HF. This guarantees 100% processing success rate by bypassing native library Buffer/Blob corruption bugs.
 
 ### Credit Limiting via Auth Metadata (Stateless)
@@ -109,15 +109,32 @@ The app uses a premium editorial design system defined in `src/app/globals.css`:
    ```
 
 2. **Configure environment variables**:
-   Create a `.env.local` containing:
+   Create a `.env` or `.env.local` containing:
    ```env
-   # API Keys (optional; falls back to canvas VTON simulation if empty)
-   REPLICATE_API_TOKEN=your_token
-   HF_TOKEN=your_token
-   PIAPI_KEY=your_token
+   # Supabase Authentication & Database
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+   # Groq AI Stylist Chatbot (Default model: llama-3.3-70b-versatile)
+   GROQ_API_KEY=your_groq_api_key
+   GROQ_MODEL=llama-3.3-70b-versatile
+
+   # Razorpay Payment Gateway (Test or Live)
+   RAZORPAY_KEY_ID=your_razorpay_key_id
+   RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+   NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id
+
+   # Virtual Try-On API Keys (Optional; falls back to canvas VTON simulation if empty)
+   HF_TOKEN=your_huggingface_token
+   PIAPI_KEY=your_piapi_kling_key
+   REPLICATE_API_TOKEN=your_replicate_token
    ```
 
-3. **Start the local server**:
+3. **Initialize Database Tables (Optional for cloud sync)**:
+   Run the queries in [`supabase_schema.sql`](supabase_schema.sql) in your Supabase SQL Editor to establish `carts`, `style_dna`, and RLS security policies.
+
+4. **Start the local server**:
    ```bash
    npm run dev
    ```

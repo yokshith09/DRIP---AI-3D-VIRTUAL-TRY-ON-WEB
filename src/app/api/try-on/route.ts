@@ -38,12 +38,31 @@ async function getPublicUrl(imageInput: string): Promise<string> {
   const blob = new Blob([new Uint8Array(buffer)], { type: mime });
   formData.append('files[]', blob, filename);
   
-  const res = await fetch('https://uguu.se/upload.php', { method: 'POST', body: formData });
-  const data = await res.json();
-  if (!data.success || !data.files || data.files.length === 0) {
-    throw new Error('Failed to upload image to temporary public host');
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+  
+  try {
+    const res = await fetch('https://uguu.se/upload.php', { 
+      method: 'POST', 
+      body: formData,
+      signal: controller.signal 
+    });
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) {
+      throw new Error(`Ephemeral host returned HTTP ${res.status}`);
+    }
+    
+    const data = await res.json();
+    if (!data.success || !data.files || data.files.length === 0) {
+      throw new Error('Failed to upload image to temporary public host');
+    }
+    return data.files[0].url;
+  } catch (uploadErr: any) {
+    clearTimeout(timeoutId);
+    console.warn('[API TRY-ON] Temporary host upload warning:', uploadErr.message);
+    throw new Error(`Image conversion failed: ${uploadErr.message}`);
   }
-  return data.files[0].url;
 }
 
 export async function POST(req: Request) {

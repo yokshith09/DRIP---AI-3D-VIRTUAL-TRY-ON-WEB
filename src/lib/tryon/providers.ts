@@ -58,15 +58,7 @@ export async function runHuggingFace(
   console.log('[TRY-ON HF] Connecting to yisol/IDM-VTON Gradio Space...');
 
   let Client: any;
-  try {
-    const mod = await import('@gradio/client');
-    Client = mod.Client;
-  } catch (importErr) {
-    throw new Error(`Failed to import @gradio/client: ${importErr}`);
-  }
-
-    let client: any;
-    let handle_file: any;
+  let handle_file: any;
   try {
     const mod = await import('@gradio/client');
     Client = mod.Client;
@@ -75,6 +67,7 @@ export async function runHuggingFace(
     throw new Error(`Failed to import @gradio/client: ${importErr}`);
   }
 
+  let client: any;
   try {
     client = await Client.connect('yisol/IDM-VTON', {
       token: process.env.HF_TOKEN as `hf_${string}`,

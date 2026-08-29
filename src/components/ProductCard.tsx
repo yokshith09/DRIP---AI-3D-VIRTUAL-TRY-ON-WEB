@@ -1,21 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Star, Sparkles } from 'lucide-react';
+import { Product } from '@/data/types';
 
-export interface Product {
-  id: string | number;
-  name: string;
-  brand: string;
-  price: string;
-  category?: string;
-  subcategory?: string;
-  originalPrice?: string;
-  rating: string | number;
-  reviews: string | number;
-  image: string;
-  isNew?: boolean;
-  matchPercentage?: number;
-}
+export type { Product };
 
 export default function ProductCard({ product, onTryOn }: { product: Product; onTryOn?: (product: Product) => void }) {
   return (
