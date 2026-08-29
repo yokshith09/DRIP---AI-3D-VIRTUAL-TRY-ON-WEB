@@ -139,3 +139,33 @@ The app uses a premium editorial design system defined in `src/app/globals.css`:
    npm run dev
    ```
    Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+---
+
+## 🚢 CI/CD & Vercel Auto-Deployment
+
+This repository includes an automated GitHub Actions pipeline ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) and Vercel configuration ([`vercel.json`](vercel.json)) for continuous integration and zero-downtime deployment.
+
+### Continuous Integration (CI)
+On every Pull Request and push to `main`:
+1. Checks out repository and configures Node.js 20 with npm caching.
+2. Runs TypeScript type checking (`npx tsc --noEmit`).
+3. Executes a production build dry-run (`npm run build`).
+
+### Continuous Deployment (CD)
+- **Preview Deployments**: Automated on pull requests.
+- **Production Auto-Deploy**: Automatically triggers on pushes to branch `main`.
+
+### Setting Up Vercel Secrets on GitHub:
+In your GitHub repository, navigate to **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** and add:
+
+| Secret Name | Description | Where to Find It |
+| :--- | :--- | :--- |
+| `VERCEL_TOKEN` | Vercel Personal Access Token | [vercel.com/account/tokens](https://vercel.com/account/tokens) |
+| `VERCEL_ORG_ID` | Vercel Account / Team ID | Found in `.vercel/project.json` after running `vercel link` |
+| `VERCEL_PROJECT_ID` | Vercel Project ID | Found in Vercel Project Settings $\rightarrow$ General |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production Supabase URL | Supabase Dashboard $\rightarrow$ Project Settings $\rightarrow$ API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production Supabase Anon Key | Supabase Dashboard $\rightarrow$ Project Settings $\rightarrow$ API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key | Supabase Dashboard $\rightarrow$ Project Settings $\rightarrow$ API |
+| `GOOGLE_AI_KEY` | Google Gemini API Key | Google AI Studio $\rightarrow$ Get API Key |
+| `GROQ_API_KEY` | Groq API Key | Groq Console $\rightarrow$ API Keys |
