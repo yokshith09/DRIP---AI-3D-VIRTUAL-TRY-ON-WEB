@@ -16,7 +16,7 @@ export default function Login() {
   // FORM STATES
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']); 
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '', '', '']); // Supports both 8-digit and 6-digit Supabase OTPs
   const [isRegistering, setIsRegistering] = useState(false);
   
   // UI STATES
@@ -139,11 +139,17 @@ export default function Login() {
   };
 
   const handleVerifyOtp = async () => {
+    const token = otp.join('').trim();
+    if (token.length < 6) {
+      setError('Please enter the full verification code.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setSuccessMsg(null);
+
     try {
-      const token = otp.join('');
       const { error } = await supabase.auth.verifyOtp({
         email,
         token,
@@ -162,22 +168,45 @@ export default function Login() {
       }
       router.refresh();
     } catch (err: any) {
-      setError('Invalid verification code.');
+      console.error('[OTP VERIFY ERROR]', err);
+      setError(err.message || 'Invalid verification code.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    if (!/^[0-9]*$/.test(value)) return;
+    const clean = value.replace(/[^a-zA-Z0-9]/g, '');
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = clean.slice(-1);
     setOtp(newOtp);
     
-    if (value && index < 5) {
+    if (clean && index < 7) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
     }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').trim().replace(/[^a-zA-Z0-9]/g, '');
+    if (!pasted) return;
+
+    const newOtp = [...otp];
+    for (let i = 0; i < 8; i++) {
+      newOtp[i] = pasted[i] || '';
+    }
+    setOtp(newOtp);
+
+    const focusIdx = Math.min(pasted.length, 7);
+    document.getElementById(`otp-${focusIdx}`)?.focus();
   };
 
   return (
@@ -291,10 +320,13 @@ export default function Login() {
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in duration-300">
-            <h2 className="text-2xl font-display text-drip-dark mb-2">Verify Security OTP</h2>
-            <p className="text-sm text-drip-muted mb-6">Enter the 6-digit code sent to {email} <button onClick={() => setStep('CREDENTIALS')} className="text-drip-coral font-bold underline ml-1">Go Back</button></p>
+            <h2 className="text-2xl font-display text-drip-dark mb-2">Verify Security Code</h2>
+            <p className="text-xs text-drip-muted mb-6 leading-relaxed">
+              Enter the verification code sent to <span className="font-bold text-black">{email}</span>
+              <button onClick={() => setStep('CREDENTIALS')} className="text-drip-coral font-bold underline ml-2">Change Email</button>
+            </p>
             
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-8 gap-1.5 sm:gap-2">
               {otp.map((digit, idx) => (
                 <input 
                   key={idx}
@@ -303,7 +335,9 @@ export default function Login() {
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleOtpChange(idx, e.target.value)}
-                  className="w-full h-12 text-center text-lg font-bold bg-white rounded-xl border border-gray-200 focus:outline-none focus:border-black"
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  onPaste={handleOtpPaste}
+                  className="w-full h-11 sm:h-12 text-center text-base sm:text-lg font-bold bg-white rounded-xl border border-gray-200 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
                 />
               ))}
             </div>
@@ -312,10 +346,10 @@ export default function Login() {
 
             <button 
               onClick={handleVerifyOtp}
-              disabled={otp.join('').length < 6 || isLoading}
+              disabled={otp.join('').trim().length < 6 || isLoading}
               className="w-full bg-black text-white py-4 rounded-xl font-bold tracking-widest uppercase text-xs mt-4 hover:bg-drip-coral transition-all disabled:opacity-50 flex justify-center items-center shadow-md"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify & Login'}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify & Sign In'}
             </button>
           </div>
         )}
