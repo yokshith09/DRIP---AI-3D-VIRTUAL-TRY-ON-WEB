@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dns from 'dns';
 import { promisify } from 'util';
+import { checkRateLimit, getClientIp } from '../../../lib/rateLimit';
 
 const dnsLookup = promisify(dns.lookup);
 
@@ -66,6 +67,24 @@ function sanitizeText(str: string): string {
 
 export async function POST(req: Request) {
   try {
+    const clientIp = getClientIp(req);
+    // Apply Rate Limiting (Phase 3): 5 imports per minute per IP
+    const rateLimit = checkRateLimit(`import:${clientIp}`, 5, 60 * 1000);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Rate limit exceeded. Too many product import requests. Please try again later.',
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil(rateLimit.resetMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     const { url } = await req.json();
     if (!url) {
       return NextResponse.json({ success: false, error: 'Product URL is required' }, { status: 400 });

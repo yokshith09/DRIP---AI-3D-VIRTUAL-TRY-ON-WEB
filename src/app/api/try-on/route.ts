@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
 import { runTryOnWithFallback } from '@/lib/tryon';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIp } from '../../../lib/rateLimit';
 
-// Helper: Upload base64 or local image to a temporary public host (uguu.se)
-// If upload fails or times out, safely return the original input without crashing
+// Helper: Upload base64 or local image to secure private Supabase storage and get a temporary signed URL.
+// Replaces insecure third-party temporary uploaders (uguu.se) to ensure user biometric and body photo privacy.
 async function getPublicUrl(imageInput: string): Promise<string> {
   if (!imageInput) return '';
   if (imageInput.startsWith('http://') || imageInput.startsWith('https://')) return imageInput;
   
   let buffer: Buffer;
   let mime = 'image/jpeg';
-  let filename = 'image.jpg';
+  let filename = `tryon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
 
   try {
     if (imageInput.startsWith('data:')) {
@@ -19,7 +20,8 @@ async function getPublicUrl(imageInput: string): Promise<string> {
       const data = imageInput.slice(commaIdx + 1);
       const mimeMatch = header.match(/data:(.*?);/);
       if (mimeMatch) mime = mimeMatch[1];
-      filename = `image.${mime.split('/')[1] || 'jpg'}`;
+      const ext = mime.split('/')[1] || 'jpg';
+      filename = `tryon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       buffer = Buffer.from(data, 'base64');
     } else if (imageInput.startsWith('/')) {
       const fs = await import('fs');
@@ -37,37 +39,66 @@ async function getPublicUrl(imageInput: string): Promise<string> {
       return imageInput;
     }
 
-    console.log(`[API TRY-ON] Uploading ${filename} to temporary host...`);
-    const formData = new FormData();
-    const blob = new Blob([new Uint8Array(buffer)], { type: mime });
-    formData.append('files[]', blob, filename);
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
-    
-    const res = await fetch('https://uguu.se/upload.php', { 
-      method: 'POST', 
-      body: formData,
-      signal: controller.signal 
-    });
-    clearTimeout(timeoutId);
-    
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.files && data.files.length > 0) {
-        return data.files[0].url;
+    // Attempt secure upload to private Supabase Storage if service key is configured
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const { createClient: createSupabaseJs } = await import('@supabase/supabase-js');
+        const supabase = createSupabaseJs(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY
+        );
+
+        const bucketName = 'tryon-temp';
+        const { error: uploadErr } = await supabase.storage
+          .from(bucketName)
+          .upload(filename, buffer, { contentType: mime, upsert: true });
+
+        if (!uploadErr) {
+          // Generate 1-hour secure signed URL
+          const { data: signedData, error: signErr } = await supabase.storage
+            .from(bucketName)
+            .createSignedUrl(filename, 3600);
+
+          if (!signErr && signedData?.signedUrl) {
+            console.log(`[API TRY-ON] ✓ Successfully generated private signed URL for ${filename}`);
+            return signedData.signedUrl;
+          }
+        } else {
+          console.warn('[API TRY-ON] Supabase storage upload warning:', uploadErr.message);
+        }
+      } catch (storageErr: any) {
+        console.warn('[API TRY-ON] Storage signed URL error:', storageErr.message);
       }
     }
-  } catch (uploadErr: any) {
-    console.warn('[API TRY-ON] Temporary host upload warning:', uploadErr.message);
+  } catch (err: any) {
+    console.warn('[API TRY-ON] Image processing warning:', err.message);
   }
 
-  // Gracefully fallback to the original image URI
+  // Gracefully fallback to the original image URI without compromising privacy via untrusted third parties
   return imageInput;
 }
 
 export async function POST(req: Request) {
   try {
+    const clientIp = getClientIp(req);
+
+    // Apply Rate Limiting (Phase 3): 10 try-ons per 10 minutes per IP
+    const rateLimit = checkRateLimit(`tryon:${clientIp}`, 10, 10 * 60 * 1000);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Rate limit exceeded. Too many virtual try-on requests. Please try again later.',
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil(rateLimit.resetMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     
     // Support both 'personImage' (new) and 'modelImage' (old) variable keys
@@ -148,9 +179,9 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('[API TRY-ON] Execution error:', error);
+    console.error('[API TRY-ON] Critical error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Virtual fitting failed' },
+      { success: false, error: error.message || 'Internal server error during virtual try-on execution.' },
       { status: 500 }
     );
   }

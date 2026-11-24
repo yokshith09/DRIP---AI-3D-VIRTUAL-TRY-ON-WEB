@@ -37,19 +37,29 @@ export default function Navbar() {
         </div>
         
         <nav className="hidden lg:flex items-center space-x-7">
-          {['MEN', 'WOMEN', 'ACCESSORIES', 'AI STUDIO'].map((item) => (
+          {['MEN', 'WOMEN', 'ACCESSORIES', 'RUNWAY', 'AI STUDIO'].map((item) => (
             <Link 
               key={item} 
               href={
+                item === 'RUNWAY' ? '/runway' :
                 item === 'AI STUDIO' ? '/avatar-studio' : 
                 item === 'MEN' ? '/collections/mens' :
                 item === 'WOMEN' ? '/collections/womens' :
                 item === 'ACCESSORIES' ? '/collections/accessories' :
                 '/category'
               } 
-              className="text-[14px] font-sans font-medium text-gray-800 hover:text-black transition-colors"
+              className={`text-[14px] font-sans font-medium transition-colors ${
+                item === 'RUNWAY'
+                  ? 'text-black font-semibold flex items-center gap-1.5'
+                  : 'text-gray-800 hover:text-black'
+              }`}
             >
               {item}
+              {item === 'RUNWAY' && (
+                <span className="text-[9px] bg-black text-white px-1.5 py-0.5 rounded tracking-widest uppercase font-mono">
+                  3D
+                </span>
+              )}
             </Link>
           ))}
         </nav>

@@ -179,3 +179,24 @@ test('security - constant-time HMAC payment signature verification', () => {
   assert.equal(verifySignature(tamperedSignature), false, 'Tampered signature must fail');
   assert.equal(verifySignature('short_signature'), false, 'Different length signature must fail');
 });
+
+import { checkRateLimit } from '../src/lib/rateLimit';
+
+test('security - sliding window rate limiter throttles excessive requests', () => {
+  const testKey = `test-ip-${Date.now()}`;
+  const limit = 3;
+  const windowMs = 1000;
+
+  // First 3 requests must succeed
+  assert.equal(checkRateLimit(testKey, limit, windowMs).success, true);
+  assert.equal(checkRateLimit(testKey, limit, windowMs).success, true);
+  const r3 = checkRateLimit(testKey, limit, windowMs);
+  assert.equal(r3.success, true);
+  assert.equal(r3.remaining, 0);
+
+  // 4th request must be rejected
+  const r4 = checkRateLimit(testKey, limit, windowMs);
+  assert.equal(r4.success, false);
+  assert.equal(r4.remaining, 0);
+  assert.ok(r4.resetMs > 0);
+});

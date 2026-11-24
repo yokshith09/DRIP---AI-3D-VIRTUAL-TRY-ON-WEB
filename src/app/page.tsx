@@ -166,6 +166,60 @@ export default function Home() {
         <span className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">FREE SHIPPING AND RETURNS ON ALL ORDERS</span>
       </div>
 
+      {/* ══════ 3D RUNWAY OUTFIT CAROUSEL SHOWCASE (Editorial Experience) ══════ */}
+      <section className="py-16 md:py-20 bg-black text-white relative overflow-hidden border-b border-white/10">
+        <div className="max-w-[1400px] mx-auto px-5 md:px-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-mono tracking-widest uppercase text-white/90 mb-4">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              3D Runway • Live Outfit Carousel
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-3">
+              TRY THE LOOK.
+            </h2>
+            <p className="text-gray-400 text-xs md:text-sm font-normal leading-relaxed mb-6">
+              Six looks, styled head to toe. Explore the turning 3D runway ring, isolate each look in full-screen lightbox, tap pins to inspect individual garments, and bundle complete streetwear outfits.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link
+                href="/runway"
+                className="bg-white text-black px-8 py-3.5 text-xs font-bold uppercase tracking-widest rounded-full hover:bg-drip-coral hover:text-white transition-all shadow-xl inline-flex items-center gap-2 group"
+              >
+                <span>Launch 3D Runway</span>
+                <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </Link>
+              <a
+                href="/runway.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs uppercase tracking-widest text-white/70 hover:text-white underline underline-offset-4 font-mono transition-colors"
+              >
+                Fullscreen View ↗
+              </a>
+            </div>
+          </div>
+
+          <Link href="/runway" className="relative group block w-full md:w-[480px] aspect-[16/10] bg-gray-900 rounded-2xl overflow-hidden border border-white/15 shadow-2xl">
+            <img
+              src="https://reel-ref-try-the-look.vercel.app/assets/original-look-1.webp"
+              alt="Runway Preview"
+              className="w-full h-full object-contain object-bottom group-hover:scale-105 transition-transform duration-700 p-4"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6">
+              <div className="flex items-center justify-between w-full">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/60">Look 01</span>
+                  <p className="text-sm font-bold text-white uppercase tracking-wider">The City Edit</p>
+                </div>
+                <span className="text-xs bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full font-mono text-white">
+                  3 Pieces • $492.30
+                </span>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* ══════ LATEST DROPS ══════ */}
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-5 md:px-12">
