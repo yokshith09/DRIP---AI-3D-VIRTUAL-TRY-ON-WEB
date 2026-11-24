@@ -148,7 +148,10 @@ export default function AIFittingRoomModal({
         if (typeof window !== 'undefined') {
           const count = parseInt(localStorage.getItem('drip_tryon_count') || '0', 10);
           setTryOnCount(count);
-          setIsPremium(localStorage.getItem('drip_premium') === 'true');
+          setIsPremium(
+            localStorage.getItem('drip_premium') === 'true' || 
+            localStorage.getItem('drip_is_premium') === 'true'
+          );
         }
       };
       
@@ -329,6 +332,7 @@ export default function AIFittingRoomModal({
       await new Promise((resolve) => setTimeout(resolve, 1200));
       setIsPremium(true);
       setPremiumSuccess(true);
+      localStorage.setItem('drip_premium', 'true');
       localStorage.setItem('drip_is_premium', 'true');
       setIsPayingPremium(false);
     } catch (err: any) {

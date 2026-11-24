@@ -67,7 +67,7 @@ Guidelines for interaction:
 
     // Strategy 1: Try Groq API if key is present
     const groqKey = process.env.GROQ_API_KEY;
-    const groqModel = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+    const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
     let groqStream: ReadableStream | null = null;
     if (groqKey && !groqKey.includes('your_')) {
@@ -159,9 +159,10 @@ Guidelines for interaction:
 
     // Strategy 2: Fallback to Google Gemini (High Performance & Always Active)
     const geminiKey = process.env.GOOGLE_AI_KEY;
+    const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     if (geminiKey) {
       try {
-        console.log('[AI CHAT] Streaming consultation via Google Gemini 3.6 Flash...');
+        console.log(`[AI CHAT] Streaming consultation via Google Gemini (${geminiModel})...`);
         
         // Format conversation history for Gemini
         const geminiContents = messages.map((m: any) => ({
@@ -174,7 +175,7 @@ Guidelines for interaction:
         }
 
         const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${geminiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

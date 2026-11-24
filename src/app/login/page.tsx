@@ -6,6 +6,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
+// Sanitize redirect query param to prevent open redirect vulnerabilities
+function getSafeRedirectPath(): string {
+  if (typeof window === 'undefined') return '/';
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('redirect');
+  if (!raw) return '/';
+
+  // Strip leading slashes, backslashes, and verify it's a safe internal route
+  const clean = raw.replace(/^[/\\]+/, '').trim();
+  if (!clean || clean.includes('://') || clean.startsWith('//') || clean.includes('\\')) {
+    return '/';
+  }
+  return `/${clean}`;
+}
+
 export default function Login() {
   const router = useRouter();
   const supabase = createClient();
@@ -68,14 +83,7 @@ export default function Login() {
         // Auto sign in after registration
         await supabase.auth.signInWithPassword({ email, password });
         
-        const params = new URLSearchParams(window.location.search);
-        const redirectPath = params.get('redirect');
-        
-        if (redirectPath) {
-          router.push(`/${redirectPath}`);
-        } else {
-          router.push('/');
-        }
+        router.push(getSafeRedirectPath());
         router.refresh();
       } else {
         if (!password) {
@@ -90,14 +98,7 @@ export default function Login() {
         });
         if (error) throw error;
         
-        const params = new URLSearchParams(window.location.search);
-        const redirectPath = params.get('redirect');
-        
-        if (redirectPath) {
-          router.push(`/${redirectPath}`);
-        } else {
-          router.push('/');
-        }
+        router.push(getSafeRedirectPath());
         router.refresh();
       }
     } catch (err: any) {
@@ -158,14 +159,7 @@ export default function Login() {
       
       if (error) throw error;
       
-      const params = new URLSearchParams(window.location.search);
-      const redirectPath = params.get('redirect');
-      
-      if (redirectPath) {
-        router.push(`/${redirectPath}`);
-      } else {
-        router.push('/');
-      }
+      router.push(getSafeRedirectPath());
       router.refresh();
     } catch (err: any) {
       console.error('[OTP VERIFY ERROR]', err);

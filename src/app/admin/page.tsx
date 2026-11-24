@@ -300,8 +300,8 @@ export default function AdminDashboard() {
                     onChange={(e) => setCategory(e.target.value as any)}
                     className="w-full border border-gray-200 px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-black bg-white"
                   >
-                    <option value="mens">Men's Wear</option>
-                    <option value="womens">Women's Wear</option>
+                    <option value="mens">Men&apos;s Wear</option>
+                    <option value="womens">Women&apos;s Wear</option>
                     <option value="accessories">Accessories</option>
                   </select>
                 </div>

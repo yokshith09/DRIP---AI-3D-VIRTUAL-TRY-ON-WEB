@@ -36,6 +36,12 @@ jobs:
       - name: TypeScript Type Check
         run: npx tsc --noEmit
 
+      - name: ESLint Code Quality Verification
+        run: npm run lint
+
+      - name: Automated Unit Tests
+        run: npm test
+
       - name: Test Production Build
         run: npm run build
         env:

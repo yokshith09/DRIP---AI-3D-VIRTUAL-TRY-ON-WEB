@@ -57,6 +57,43 @@ function isOutfitRequest(query: string): boolean {
 }
 
 /**
+ * Balances top, bottom, and accessory categories when styling an outfit
+ */
+export function balanceOutfitProducts(products: Product[], limit: number): Product[] {
+  const tops: Product[] = [];
+  const bottoms: Product[] = [];
+  const others: Product[] = [];
+
+  for (const product of products) {
+    const sub = (product.subcategory || '').toLowerCase();
+    if (TOP_SUBCATEGORIES.has(sub)) {
+      tops.push(product);
+    } else if (BOTTOM_SUBCATEGORIES.has(sub)) {
+      bottoms.push(product);
+    } else {
+      others.push(product);
+    }
+  }
+
+  const result: Product[] = [];
+  result.push(...tops.slice(0, 3));
+  result.push(...bottoms.slice(0, 3));
+  result.push(...others.slice(0, 2));
+
+  if (result.length < limit) {
+    const existingIds = new Set(result.map(p => p.id));
+    for (const product of products) {
+      if (!existingIds.has(product.id)) {
+        result.push(product);
+        if (result.length >= limit) break;
+      }
+    }
+  }
+
+  return result.slice(0, limit);
+}
+
+/**
  * Retrieves the most relevant products using RAG logic.
  * Combines keyword relevance score and Style DNA compatibility score.
  */
@@ -70,42 +107,14 @@ export function retrieveProducts(query: string, dna: StyleDNA, limit: number = 8
         product: p,
         score: scoreProduct(p, dna)
       }))
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.product);
 
     if (isOutfitRequest(query)) {
-      const tops: Product[] = [];
-      const bottoms: Product[] = [];
-      const others: Product[] = [];
-
-      for (const item of scored) {
-        const sub = (item.product.subcategory || '').toLowerCase();
-        if (TOP_SUBCATEGORIES.has(sub)) {
-          tops.push(item.product);
-        } else if (BOTTOM_SUBCATEGORIES.has(sub)) {
-          bottoms.push(item.product);
-        } else {
-          others.push(item.product);
-        }
-      }
-
-      const result: Product[] = [];
-      result.push(...tops.slice(0, 3));
-      result.push(...bottoms.slice(0, 3));
-      result.push(...others.slice(0, 2));
-
-      if (result.length < limit) {
-        const existingIds = new Set(result.map(p => p.id));
-        for (const item of scored) {
-          if (!existingIds.has(item.product.id)) {
-            result.push(item.product);
-            if (result.length >= limit) break;
-          }
-        }
-      }
-      return result.slice(0, limit);
+      return balanceOutfitProducts(scored, limit);
     }
 
-    return scored.slice(0, limit).map(item => item.product);
+    return scored.slice(0, limit);
   }
 
   const scoredProducts = PRODUCTS.map(product => {
@@ -163,41 +172,14 @@ export function retrieveProducts(query: string, dna: StyleDNA, limit: number = 8
   });
 
   // Sort by highest score first
-  const sortedScored = scoredProducts.sort((a, b) => b.finalScore - a.finalScore);
+  const sortedProducts = scoredProducts
+    .sort((a, b) => b.finalScore - a.finalScore)
+    .map(item => item.product);
 
   if (isOutfitRequest(query)) {
-    const tops: Product[] = [];
-    const bottoms: Product[] = [];
-    const others: Product[] = [];
-
-    for (const item of sortedScored) {
-      const sub = (item.product.subcategory || '').toLowerCase();
-      if (TOP_SUBCATEGORIES.has(sub)) {
-        tops.push(item.product);
-      } else if (BOTTOM_SUBCATEGORIES.has(sub)) {
-        bottoms.push(item.product);
-      } else {
-        others.push(item.product);
-      }
-    }
-
-    const result: Product[] = [];
-    result.push(...tops.slice(0, 3));
-    result.push(...bottoms.slice(0, 3));
-    result.push(...others.slice(0, 2));
-
-    if (result.length < limit) {
-      const existingIds = new Set(result.map(p => p.id));
-      for (const item of sortedScored) {
-        if (!existingIds.has(item.product.id)) {
-          result.push(item.product);
-          if (result.length >= limit) break;
-        }
-      }
-    }
-    return result.slice(0, limit);
+    return balanceOutfitProducts(sortedProducts, limit);
   }
 
   // Sort and select top items overall
-  return sortedScored.slice(0, limit).map(item => item.product);
+  return sortedProducts.slice(0, limit);
 }

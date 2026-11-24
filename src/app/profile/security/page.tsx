@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ShieldAlert, Key, Smartphone, ToggleLeft, ToggleRight, Check } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, Key, Smartphone, ToggleLeft, ToggleRight, Check, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SecuritySettings() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -12,22 +13,43 @@ export default function SecuritySettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [twoFactor, setTwoFactor] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      alert('Please fill out all fields');
+    setErrorMsg(null);
+    if (!newPassword || !confirmPassword) {
+      setErrorMsg('Please fill out all required fields');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setErrorMsg('New password must be at least 6 characters');
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert('New passwords do not match');
+      setErrorMsg('New passwords do not match');
       return;
     }
-    setSaved(true);
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setTimeout(() => setSaved(false), 3000);
+
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) throw error;
+
+      setSaved(true);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,6 +109,13 @@ export default function SecuritySettings() {
                 />
               </div>
 
+              {errorMsg && (
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-700 text-xs flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center pt-4">
                 <div>
                   {saved && (
@@ -98,9 +127,11 @@ export default function SecuritySettings() {
                 </div>
                 <button 
                   type="submit"
-                  className="bg-black text-white text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full hover:bg-gray-800 transition-colors shadow-sm"
+                  disabled={loading}
+                  className="bg-black text-white text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-50 flex items-center space-x-2"
                 >
-                  Update Password
+                  {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{loading ? 'Updating...' : 'Update Password'}</span>
                 </button>
               </div>
             </form>

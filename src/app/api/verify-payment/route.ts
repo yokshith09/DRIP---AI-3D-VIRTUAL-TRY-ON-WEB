@@ -34,7 +34,12 @@ export async function POST(req: Request) {
       .update(verificationString)
       .digest('hex');
 
-    const isAuthentic = generatedSignature === signature;
+    // Constant-time comparison to prevent timing attacks on HMAC signatures
+    const generatedBuf = Buffer.from(generatedSignature, 'utf8');
+    const signatureBuf = Buffer.from(signature, 'utf8');
+    const isAuthentic = 
+      generatedBuf.length === signatureBuf.length && 
+      crypto.timingSafeEqual(generatedBuf, signatureBuf);
 
     if (isAuthentic) {
       console.log(`[RAZORPAY VERIFY-PAYMENT] Signature matches! Transaction authenticity confirmed. Order: ${orderId}`);

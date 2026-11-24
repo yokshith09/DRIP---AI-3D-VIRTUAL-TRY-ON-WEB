@@ -122,19 +122,22 @@ export default function ShopperAI() {
 
       const decoder = new TextDecoder();
       let assistantText = '';
+      let sseBuffer = '';
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split('\n');
+        sseBuffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.startsWith('data: ')) {
             try {
-              const rawData = line.slice(6).trim();
-              if (!rawData) continue;
+              const rawData = trimmedLine.slice(6).trim();
+              if (!rawData || rawData === '[DONE]') continue;
               
               const parsed = JSON.parse(rawData);
               if (parsed.text) {
@@ -144,7 +147,7 @@ export default function ShopperAI() {
                 throw new Error(parsed.error);
               }
             } catch (err) {
-              // Ignore occasional partial json parse errors during transmission
+              // Ignore invalid JSON chunks
             }
           }
         }

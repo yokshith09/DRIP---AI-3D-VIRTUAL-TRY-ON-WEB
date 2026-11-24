@@ -29,7 +29,7 @@ export default function AboutPage() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-600">DEFINED BY DETAILS.</span>
           </h2>
           <p className="text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto mb-20 text-sm md:text-[15px]">
-            We've created over 6,000 unique styles, maintaining 100% in-house quality checks. Operating through 20+ stores globally, every single piece we craft is engineered around three uncompromising pillars.
+            We&apos;ve created over 6,000 unique styles, maintaining 100% in-house quality checks. Operating through 20+ stores globally, every single piece we craft is engineered around three uncompromising pillars.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-12">

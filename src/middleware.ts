@@ -6,9 +6,13 @@ export async function middleware(request: NextRequest) {
     request,
   });
 
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -29,8 +33,41 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Basic Route Protection
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/profile') || request.nextUrl.pathname.startsWith('/avatar-studio');
+  const redirectWithCookies = (url: URL) => {
+    const redirectResponse = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    return redirectResponse;
+  };
+
+  const pathname = request.nextUrl.pathname;
+
+  // 1. Role-Based Access Control (RBAC): /admin requires admin@drip.com
+  if (pathname.startsWith('/admin')) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.searchParams.set('redirect', pathname.slice(1));
+      return redirectWithCookies(url);
+    }
+
+    if (user.email?.toLowerCase() !== 'admin@drip.com') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      url.search = '';
+      return redirectWithCookies(url);
+    }
+
+    return supabaseResponse;
+  }
+
+  // 2. Protected User Routes: /profile and /avatar-studio require authentication
+  const isProtectedRoute = pathname.startsWith('/profile') || pathname.startsWith('/avatar-studio');
   
   if (isProtectedRoute) {
     const {
@@ -38,16 +75,13 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      // Redirect unauthenticated users trying to access protected routes to login
       const url = request.nextUrl.clone();
       url.pathname = '/login';
-      // Append redirect param so they return to where they were headed
-      url.searchParams.set('redirect', request.nextUrl.pathname.slice(1));
-      return NextResponse.redirect(url);
+      url.searchParams.set('redirect', pathname.slice(1));
+      return redirectWithCookies(url);
     }
   } else {
-    // For non-protected routes, just use getSession to refresh the token if needed 
-    // without forcing a network request to the Supabase Auth server.
+    // For non-protected routes, just use getSession to refresh the token if needed
     await supabase.auth.getSession();
   }
 
