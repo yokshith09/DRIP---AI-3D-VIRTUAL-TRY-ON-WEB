@@ -36,15 +36,13 @@ export default function Navbar() {
           </Link>
         </div>
         
-        <nav className="hidden lg:flex items-center space-x-6">
+        <nav className="hidden lg:flex items-center space-x-7">
           {[
             { label: 'MEN', href: '/collections/mens' },
             { label: 'WOMEN', href: '/collections/womens' },
             { label: 'ACCESSORIES', href: '/collections/accessories' },
-            { label: 'RUNWAY', href: '/runway', badge: '3D' },
-            { label: 'WARDROBE', href: '/wardrobe', badge: 'RAIL' },
-            { label: 'BRAND MANUAL', href: '/brand-manual' },
-            { label: 'AI STUDIO', href: '/avatar-studio' },
+            { label: 'AI ATELIER', href: '/avatar-studio', badge: 'TRY-ON' },
+            { label: 'MY LOCKER', href: '/profile/locker', badge: '3D' },
           ].map((item) => (
             <Link 
               key={item.label} 

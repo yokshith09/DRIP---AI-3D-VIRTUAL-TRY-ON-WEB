@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Star, Heart, SlidersHorizontal, ChevronRight, Scissors } from 'lucide-react';
+import { Sparkles, Star, Heart, SlidersHorizontal, ChevronRight, Scissors, Grid, Layers } from 'lucide-react';
 import { useProductStore } from '@/store/products';
 import { Product } from '@/data/types';
 import { useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import WardrobeRail from '@/components/WardrobeRail';
 
 const SECTION_MAP: Record<string, string[]> = {
   mens:        ['Shirts', 'Pants', 'Jeans', 'Sneakers', 'Accessories'],
@@ -108,6 +109,7 @@ export default function CollectionPage() {
   const { products } = useProductStore();
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('All');
+  const [viewMode, setViewMode] = useState<'grid' | 'rail'>('grid');
   
   useEffect(() => {
     setIsMounted(true);
@@ -175,15 +177,53 @@ export default function CollectionPage() {
               {sec}
             </button>
           ))}
-          <div className="ml-auto flex-shrink-0 flex items-center gap-2 text-[11px] font-bold text-gray-500 cursor-pointer hover:text-black">
-            <SlidersHorizontal className="w-4 h-4" />
-            <span className="hidden md:inline">Filter</span>
+          
+          {/* View Mode Toggle: Grid vs 3D Rail */}
+          <div className="ml-auto flex-shrink-0 flex items-center gap-1.5 p-1 bg-gray-100 rounded-full border border-gray-200">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'grid' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              <Grid className="w-3.5 h-3.5" />
+              <span>Grid</span>
+            </button>
+            <button
+              onClick={() => setViewMode('rail')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'rail' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-drip-coral" />
+              <span>3D Rail</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── PRODUCT GRID ── */}
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-10">
+      {/* ── 3D RAIL VIEW OR PRODUCT GRID ── */}
+      {viewMode === 'rail' ? (
+        <div className="py-8 border-b border-[#e4e4e4]">
+          <WardrobeRail
+            title={`${label} on the Chrome Rail`}
+            subtitle={`Slide along the boutique rail to inspect ${displayedProducts.length} silhouettes in 3D hanging perspective.`}
+            badgeText="3D CLOTHES RAIL • LIVE ATELIER RACK"
+            items={displayedProducts.map((p) => ({
+              id: p.id,
+              name: p.name,
+              brand: p.brand,
+              price: p.priceNumber || 3999,
+              image: p.image,
+              category: p.subcategory || 'Atelier',
+              fabric: p.material || 'Organic Heavyweight Cotton',
+              fit: p.fit || 'Relaxed Box Cut',
+              sizes: p.sizes || ['S', 'M', 'L', 'XL'],
+            }))}
+          />
+        </div>
+      ) : (
+        <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-10">
         {activeSection === 'All' ? (
           sections.map((sec) => {
             const sectionProducts = allProducts.filter(
@@ -245,7 +285,8 @@ export default function CollectionPage() {
             )}
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* ── AI FITTING ROOM CTA ── */}
       <section className="bg-gray-950 text-white py-20 px-5 text-center">

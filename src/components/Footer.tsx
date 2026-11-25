@@ -36,14 +36,14 @@ export default function Footer() {
           {/* Links columns */}
           <div className="lg:col-span-4 grid grid-cols-2 gap-4">
             <div>
-              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-4">Spatial & Catalog</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-4">Atelier & Closet</h4>
               <ul className="space-y-2">
                 {[
-                  { name: 'Runway 3D', href: '/runway' },
-                  { name: 'Digital Wardrobe', href: '/wardrobe' },
-                  { name: 'Brand Manual', href: '/brand-manual' },
+                  { name: 'AI Virtual Fitting', href: '/avatar-studio' },
+                  { name: 'My 3D Locker', href: '/profile/locker' },
                   { name: "Men's Collection", href: '/collections/mens' },
                   { name: "Women's Collection", href: '/collections/womens' },
+                  { name: 'Accessories', href: '/collections/accessories' },
                 ].map(link => (
                   <li key={link.name}><Link href={link.href} className="text-gray-500 text-[13px] hover:text-black transition-colors font-semibold">{link.name}</Link></li>
                 ))}
@@ -53,7 +53,7 @@ export default function Footer() {
               <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-4">Support & Lab</h4>
               <ul className="space-y-2">
                 {[
-                  { name: 'AI Studio', href: '/avatar-studio' },
+                  { name: 'Style DNA', href: '/profile/style-dna' },
                   { name: 'Shipping & Returns', href: '#' },
                   { name: 'About Atelier', href: '/about' },
                   { name: 'Security & Auth', href: '/profile/security' },

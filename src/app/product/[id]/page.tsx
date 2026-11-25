@@ -19,6 +19,8 @@ import {
 import AIFittingRoomModal from '@/components/AIFittingRoomModal';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import RunwayStage from '@/components/RunwayStage';
+import WardrobeRail from '@/components/WardrobeRail';
 import { useCartStore } from '@/store/cart';
 import { useStyleDNAStore } from '@/store/styleDNA';
 import { useProductStore } from '@/store/products';
@@ -358,21 +360,38 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Cross Sells (Bottom) */}
-      <section className="max-w-[1440px] mx-auto px-4 md:px-12 py-24 border-t border-gray-100 mt-20">
-         <h3 className="text-2xl font-display font-medium italic mb-10">Complete The Look</h3>
-         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {crossSells.map(item => (
-              <a href={`/product/${item.id}`} key={item.id} className="group flex flex-col cursor-pointer">
-                <div className="w-full aspect-[4/5] bg-gray-50 relative p-4 mb-3 border border-gray-50 group-hover:shadow-md transition-all rounded-2xl">
-                   <Image src={item.image} alt={item.name} fill className="object-cover mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-500" />
-                </div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest mb-1 text-gray-400">{item.brand}</h4>
-                <p className="text-xs font-semibold text-black truncate">{item.name}</p>
-                <p className="text-xs font-bold text-black mt-1">{item.price}</p>
-              </a>
-            ))}
-         </div>
+      {/* Spatial 3D Runway: Complete The Look */}
+      <section className="border-t border-[#e4e4e4] mt-20 pt-10 bg-white">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-12 mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-gray-500 font-bold">
+              3D RUNWAY STYLING • ATELIER LOOKBOOK
+            </span>
+          </div>
+          <h3 className="text-3xl font-black uppercase tracking-tight text-black font-display">
+            Complete The Look
+          </h3>
+          <p className="text-xs text-gray-500 mt-1 max-w-lg font-sans">
+            Inspect how this piece is styled in complete head-to-toe runway edits. Tap pins to inspect complementary layers or bundle the look for 10% off.
+          </p>
+        </div>
+        <RunwayStage
+          title={`Styled with ${product.name}`}
+          subtitle="Turning 3D ring with numbered garment pins and one-click bundle savings."
+          badgeText="OUTFIT BUNDLE • 10% DISCOUNT ACTIVE"
+          compact={true}
+        />
+      </section>
+
+      {/* Spatial 3D Clothes Rail: Related Capsule */}
+      <section className="border-t border-[#e4e4e4] bg-[#fafafa]">
+        <WardrobeRail
+          title="Related Capsule on the Rail"
+          subtitle="Slide along the boutique chrome rail to browse coordinating silhouettes and fabric weights."
+          badgeText="CURATED WARDROBE • 3D RACK VIEW"
+          compact={true}
+        />
       </section>
 
       <Footer />

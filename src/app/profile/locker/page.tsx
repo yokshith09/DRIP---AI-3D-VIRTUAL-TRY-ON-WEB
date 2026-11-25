@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, Ruler, Sparkles, Check, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, Ruler, Sparkles, Check, CheckCircle2, ShieldCheck, Layers } from 'lucide-react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import WardrobeRail from '@/components/WardrobeRail';
 import { useStyleDNAStore } from '@/store/styleDNA';
 
 export default function SizeLocker() {
@@ -169,6 +170,15 @@ export default function SizeLocker() {
             </div>
           </div>
 
+        </div>
+
+        {/* 3D Digital Wardrobe Rail Section */}
+        <div className="mt-16 pt-10 border-t border-gray-200">
+          <WardrobeRail
+            title="My Digital Wardrobe Rail"
+            subtitle="Curated garments matched to your calibrated height and fit profile, hanging in 3D perspective."
+            badgeText="TAILORED LOCKER • 3D BOUTIQUE RAIL"
+          />
         </div>
 
       </div>
