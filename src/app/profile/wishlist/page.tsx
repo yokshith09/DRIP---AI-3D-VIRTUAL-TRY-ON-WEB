@@ -14,7 +14,7 @@ import AIFittingRoomModal from '@/components/AIFittingRoomModal';
 export default function Wishlist() {
   const { addItem } = useCartStore();
   const [wishlistItems, setWishlistItems] = useState(() => {
-    return PRODUCTS.filter(p => ['m1', 'a5', 'w6', 'm12'].includes(p.id));
+    return PRODUCTS.filter(p => ['bh-buck-bk', 'bh-pexo-gr', 'bh-everlys-ol', 'bh-elbrus-1'].includes(p.id));
   });
 
   const [activeTryOnProduct, setActiveTryOnProduct] = useState<any>(null);

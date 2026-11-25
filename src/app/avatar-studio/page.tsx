@@ -157,7 +157,7 @@ export default function AvatarStudio() {
   const handleAddToBag = () => {
     if (!activeProduct) return;
     addItem({
-      id: `studio-${Date.now()}`,
+      id: `${activeProduct.id}-M`,
       brand: activeProduct.brand,
       name: activeProduct.name,
       price: activeProduct.priceNumber || parseInt(String(activeProduct.price).replace(/[^\d]/g, ''), 10) || 1699,

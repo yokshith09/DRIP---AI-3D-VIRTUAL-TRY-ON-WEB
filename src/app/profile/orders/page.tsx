@@ -14,10 +14,10 @@ const MOCK_ORDERS = [
     step: 2, // Ordered (0), Processing (1), Shipped (2), Delivered (3)
     deliveryAddress: 'Yoo Jae-Suk, H-12, Sector 15, Gurugram, HR, 122001',
     items: [
-      { id: 'm1', name: 'Oxford Cotton Shirt', brand: 'Ralph Lauren', price: '₹ 4,500', size: 'M', color: 'Light Blue', image: '/images/hero/cat-shirts.png' },
-      { id: 'a5', name: 'Retro White Leather Sneakers', brand: 'DRIP Co.', price: '₹ 5,990', size: 'UK 9', color: 'Vintage White', image: '/images/hero/cat-sneakers.png' }
+      { id: 'bh-buck-bk', name: 'BUCK-BK Premium Tee', brand: 'The Bear House', price: '₹ 1,699', size: 'M', color: 'Default', image: 'https://cdn.shopify.com/s/files/1/0517/2939/9964/files/TSH-BUCK-BK_1.webp?v=1782989758' },
+      { id: 'bh-elbrus-1', name: 'ELBRUS Leather Low', brand: 'The Bear House', price: '₹ 2,799', size: 'UK 9', color: 'Cream', image: 'https://cdn.shopify.com/s/files/1/0517/2939/9964/files/SHO-ELBRUS-CR-CREAM_7.jpg?v=1762341563' }
     ],
-    total: '₹ 10,490',
+    total: '₹ 4,498',
   }
 ];
 
