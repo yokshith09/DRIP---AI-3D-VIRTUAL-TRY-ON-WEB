@@ -20,7 +20,6 @@ import AIFittingRoomModal from '@/components/AIFittingRoomModal';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import RunwayStage from '@/components/RunwayStage';
-import WardrobeRail from '@/components/WardrobeRail';
 import { useCartStore } from '@/store/cart';
 import { useStyleDNAStore } from '@/store/styleDNA';
 import { useProductStore } from '@/store/products';
@@ -380,16 +379,6 @@ export default function ProductDetail() {
           title={`Styled with ${product.name}`}
           subtitle="Turning 3D ring with numbered garment pins and one-click bundle savings."
           badgeText="OUTFIT BUNDLE • 10% DISCOUNT ACTIVE"
-          compact={true}
-        />
-      </section>
-
-      {/* Spatial 3D Clothes Rail: Related Capsule */}
-      <section className="border-t border-[#e4e4e4] bg-[#fafafa]">
-        <WardrobeRail
-          title="Related Capsule on the Rail"
-          subtitle="Slide along the boutique chrome rail to browse coordinating silhouettes and fabric weights."
-          badgeText="CURATED WARDROBE • 3D RACK VIEW"
           compact={true}
         />
       </section>
