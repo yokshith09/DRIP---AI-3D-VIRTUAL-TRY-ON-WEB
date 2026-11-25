@@ -36,14 +36,14 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
     subtitle: 'Streetwear tailored for nocturnal transit',
     modelSrc640: 'https://reel-ref-try-the-look.vercel.app/assets/model-1-640.webp',
     modelSrc1080: 'https://reel-ref-try-the-look.vercel.app/assets/original-look-1.webp',
-    bundlePrice: 547,
-    discountPrice: 492.3,
+    bundlePrice: 12997,
+    discountPrice: 11697,
     products: [
       {
         id: 'dr-knit-01',
         name: 'Charcoal Crew Knit',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 3999,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
         optionsName: 'Size',
         options: ['S', 'M', 'L', 'XL'],
@@ -53,7 +53,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-denim-01',
         name: 'Raw Light-Blue Denim',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 3999,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
         optionsName: 'Waist',
         options: ['30', '32', '34', '36'],
@@ -63,7 +63,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-snk-01',
         name: 'Orbit Low Titanium',
         vendor: 'DRIP Footwear',
-        price: 149,
+        price: 4999,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit.webp',
         optionsName: 'Shoe Size',
         options: ['41', '42', '43', '44', '45'],
@@ -79,7 +79,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-knit-01',
           name: 'Charcoal Crew Knit',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 3999,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
           optionsName: 'Size',
           options: ['S', 'M', 'L', 'XL'],
@@ -93,7 +93,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-denim-01',
           name: 'Raw Light-Blue Denim',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 3999,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
           optionsName: 'Waist',
           options: ['30', '32', '34', '36'],
@@ -107,7 +107,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-snk-01',
           name: 'Orbit Low Titanium',
           vendor: 'DRIP Footwear',
-          price: 149,
+          price: 4999,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit.webp',
           optionsName: 'Shoe Size',
           options: ['41', '42', '43', '44', '45'],
@@ -121,14 +121,14 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
     subtitle: 'Architectural minimalism with structured volume',
     modelSrc640: 'https://reel-ref-try-the-look.vercel.app/assets/model-5-640.webp',
     modelSrc1080: 'https://reel-ref-try-the-look.vercel.app/assets/original-look-5.webp',
-    bundlePrice: 497,
-    discountPrice: 447.3,
+    bundlePrice: 12997,
+    discountPrice: 11697,
     products: [
       {
         id: 'dr-tee-02',
         name: 'Monolith Heavyweight Tee',
         vendor: 'DRIP Atelier',
-        price: 149,
+        price: 2999,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
         optionsName: 'Size',
         options: ['S', 'M', 'L', 'XL'],
@@ -138,7 +138,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-pant-02',
         name: 'Pleated Flannel Trousers',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 4499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
         optionsName: 'Waist',
         options: ['30', '32', '34', '36'],
@@ -148,7 +148,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-snk-02',
         name: 'Air Jordan 12 Retro',
         vendor: 'DRIP Footwear',
-        price: 149,
+        price: 5499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit-copy.webp',
         optionsName: 'Shoe Size',
         options: ['40', '41', '42', '43', '44', '45'],
@@ -164,7 +164,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-tee-02',
           name: 'Monolith Heavyweight Tee',
           vendor: 'DRIP Atelier',
-          price: 149,
+          price: 2999,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
           optionsName: 'Size',
           options: ['S', 'M', 'L', 'XL'],
@@ -178,7 +178,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-pant-02',
           name: 'Pleated Flannel Trousers',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 4499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
           optionsName: 'Waist',
           options: ['30', '32', '34', '36'],
@@ -192,7 +192,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-snk-02',
           name: 'Air Jordan 12 Retro',
           vendor: 'DRIP Footwear',
-          price: 149,
+          price: 5499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit-copy.webp',
           optionsName: 'Shoe Size',
           options: ['40', '41', '42', '43', '44', '45'],
@@ -206,14 +206,14 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
     subtitle: 'Relaxed fleece layers with high-density ribbing',
     modelSrc640: 'https://reel-ref-try-the-look.vercel.app/assets/model-4-640.webp',
     modelSrc1080: 'https://reel-ref-try-the-look.vercel.app/assets/original-look-4.webp',
-    bundlePrice: 547,
-    discountPrice: 492.3,
+    bundlePrice: 13997,
+    discountPrice: 12597,
     products: [
       {
         id: 'dr-hoodie-03',
         name: 'Oversized Raw Hoodie',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 4499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
         optionsName: 'Size',
         options: ['S', 'M', 'L', 'XL'],
@@ -223,7 +223,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-denim-03',
         name: 'Vintage Washed Cargo',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 3999,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
         optionsName: 'Waist',
         options: ['30', '32', '34', '36'],
@@ -233,7 +233,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-snk-03',
         name: 'Tatum 5 Orbit High',
         vendor: 'DRIP Footwear',
-        price: 149,
+        price: 5499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit.webp',
         optionsName: 'Shoe Size',
         options: ['41', '42', '43', '44', '45'],
@@ -249,7 +249,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-hoodie-03',
           name: 'Oversized Raw Hoodie',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 4499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
           optionsName: 'Size',
           options: ['S', 'M', 'L', 'XL'],
@@ -263,7 +263,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-denim-03',
           name: 'Vintage Washed Cargo',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 3999,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
           optionsName: 'Waist',
           options: ['30', '32', '34', '36'],
@@ -277,7 +277,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-snk-03',
           name: 'Tatum 5 Orbit High',
           vendor: 'DRIP Footwear',
-          price: 149,
+          price: 5499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit.webp',
           optionsName: 'Shoe Size',
           options: ['41', '42', '43', '44', '45'],
@@ -291,14 +291,14 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
     subtitle: 'Sharp monochromatic tailoring with contrast stitching',
     modelSrc640: 'https://reel-ref-try-the-look.vercel.app/assets/model-6-640.webp',
     modelSrc1080: 'https://reel-ref-try-the-look.vercel.app/assets/original-look-6.webp',
-    bundlePrice: 547,
-    discountPrice: 492.3,
+    bundlePrice: 13997,
+    discountPrice: 12597,
     products: [
       {
         id: 'dr-knit-04',
         name: 'Technical Mock-Neck Zip',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 4499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
         optionsName: 'Size',
         options: ['S', 'M', 'L', 'XL'],
@@ -308,7 +308,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-denim-04',
         name: 'Deep Obsidian Straight Cut',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 3999,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
         optionsName: 'Waist',
         options: ['30', '32', '34', '36'],
@@ -318,7 +318,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-snk-04',
         name: 'Air Jordan 12 Retro',
         vendor: 'DRIP Footwear',
-        price: 149,
+        price: 5499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit-copy.webp',
         optionsName: 'Shoe Size',
         options: ['40', '41', '42', '43', '44'],
@@ -334,7 +334,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-knit-04',
           name: 'Technical Mock-Neck Zip',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 4499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
           optionsName: 'Size',
           options: ['S', 'M', 'L', 'XL'],
@@ -348,7 +348,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-denim-04',
           name: 'Deep Obsidian Straight Cut',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 3999,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
           optionsName: 'Waist',
           options: ['30', '32', '34', '36'],
@@ -362,7 +362,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-snk-04',
           name: 'Air Jordan 12 Retro',
           vendor: 'DRIP Footwear',
-          price: 149,
+          price: 5499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit-copy.webp',
           optionsName: 'Shoe Size',
           options: ['40', '41', '42', '43', '44'],
@@ -376,14 +376,14 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
     subtitle: 'Tactical weatherproofing meets architectural proportion',
     modelSrc640: 'https://reel-ref-try-the-look.vercel.app/assets/model-2-640.webp',
     modelSrc1080: 'https://reel-ref-try-the-look.vercel.app/assets/original-look-2.webp',
-    bundlePrice: 497,
-    discountPrice: 447.3,
+    bundlePrice: 13297,
+    discountPrice: 11967,
     products: [
       {
         id: 'dr-tee-05',
         name: 'Technical Pocket Shell',
         vendor: 'DRIP Atelier',
-        price: 149,
+        price: 3499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
         optionsName: 'Size',
         options: ['S', 'M', 'L', 'XL'],
@@ -393,7 +393,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-pant-05',
         name: 'Articulated Knee Cargos',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 4299,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
         optionsName: 'Waist',
         options: ['30', '32', '34', '36'],
@@ -403,7 +403,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-snk-05',
         name: 'Tatum 5 Orbit Stealth',
         vendor: 'DRIP Footwear',
-        price: 149,
+        price: 5499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit.webp',
         optionsName: 'Shoe Size',
         options: ['41', '42', '43', '44', '45'],
@@ -419,7 +419,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-tee-05',
           name: 'Technical Pocket Shell',
           vendor: 'DRIP Atelier',
-          price: 149,
+          price: 3499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
           optionsName: 'Size',
           options: ['S', 'M', 'L', 'XL'],
@@ -433,7 +433,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-pant-05',
           name: 'Articulated Knee Cargos',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 4299,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
           optionsName: 'Waist',
           options: ['30', '32', '34', '36'],
@@ -447,7 +447,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-snk-05',
           name: 'Tatum 5 Orbit Stealth',
           vendor: 'DRIP Footwear',
-          price: 149,
+          price: 5499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit.webp',
           optionsName: 'Shoe Size',
           options: ['41', '42', '43', '44', '45'],
@@ -461,14 +461,14 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
     subtitle: 'Modular warmth calibrated for all seasons',
     modelSrc640: 'https://reel-ref-try-the-look.vercel.app/assets/model-3-640.webp',
     modelSrc1080: 'https://reel-ref-try-the-look.vercel.app/assets/original-look-3.webp',
-    bundlePrice: 547,
-    discountPrice: 492.3,
+    bundlePrice: 13997,
+    discountPrice: 12597,
     products: [
       {
         id: 'dr-knit-06',
         name: 'Heavy Half-Zip Fleece',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 4499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
         optionsName: 'Size',
         options: ['S', 'M', 'L', 'XL'],
@@ -478,7 +478,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-denim-06',
         name: 'Relaxed Ecru Carpenter Pant',
         vendor: 'DRIP Atelier',
-        price: 199,
+        price: 3999,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
         optionsName: 'Waist',
         options: ['30', '32', '34', '36'],
@@ -488,7 +488,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
         id: 'dr-snk-06',
         name: 'Air Jordan 12 Retro',
         vendor: 'DRIP Footwear',
-        price: 149,
+        price: 5499,
         image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit-copy.webp',
         optionsName: 'Shoe Size',
         options: ['40', '41', '42', '43', '44', '45'],
@@ -504,7 +504,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-knit-06',
           name: 'Heavy Half-Zip Fleece',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 4499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-sweatshirt.webp',
           optionsName: 'Size',
           options: ['S', 'M', 'L', 'XL'],
@@ -518,7 +518,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-denim-06',
           name: 'Relaxed Ecru Carpenter Pant',
           vendor: 'DRIP Atelier',
-          price: 199,
+          price: 3999,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tshirt.webp',
           optionsName: 'Waist',
           options: ['30', '32', '34', '36'],
@@ -532,7 +532,7 @@ export const DRIP_RUNWAY_LOOKS: RunwayOutfitLook[] = [
           id: 'dr-snk-06',
           name: 'Air Jordan 12 Retro',
           vendor: 'DRIP Footwear',
-          price: 149,
+          price: 5499,
           image: 'https://reel-ref-try-the-look.vercel.app/assets/source-tatum-5-orbit-copy.webp',
           optionsName: 'Shoe Size',
           options: ['40', '41', '42', '43', '44', '45'],
@@ -619,7 +619,7 @@ export default function RunwayStage({
       qty: 1,
       inStock: true,
     });
-    showToast(`Added ${prod.name} (${size}) to Bag • $${prod.price}`);
+    showToast(`Added ${prod.name} (${size}) to Bag • ₹${prod.price.toLocaleString('en-IN')}`);
   };
 
   // Bundle full look
@@ -627,7 +627,7 @@ export default function RunwayStage({
     activeLook.products.forEach((prod) => {
       handleAddPiece(prod);
     });
-    showToast(`Full Look — ${activeLook.name} ($${activeLook.discountPrice.toFixed(2)}) added to bag!`);
+    showToast(`Full Look — ${activeLook.name} (₹${activeLook.discountPrice.toLocaleString('en-IN')}) added to bag!`);
   };
 
   // Trigger Try-On
@@ -774,7 +774,7 @@ export default function RunwayStage({
                               </span>
                               <h4 className="text-xs font-bold leading-tight mt-0.5">{pin.product.name}</h4>
                               <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/15">
-                                <span className="font-mono text-xs font-bold">${pin.product.price}</span>
+                                <span className="font-mono text-xs font-bold">₹{pin.product.price.toLocaleString('en-IN')}</span>
                                 <div className="flex gap-1">
                                   <button
                                     onClick={(e) => {
@@ -906,7 +906,7 @@ export default function RunwayStage({
                         <p className="text-[10px] text-gray-400 truncate">{prod.fabric}</p>
                       )}
                       <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-sm font-black font-mono text-black">${prod.price}</span>
+                        <span className="text-sm font-black font-mono text-black">₹{prod.price.toLocaleString('en-IN')}</span>
                         <button
                           onClick={() => setOpenPickerId(isPickerOpen ? null : prod.id)}
                           className="text-[10px] font-mono text-gray-500 underline uppercase cursor-pointer"
@@ -975,10 +975,10 @@ export default function RunwayStage({
               </div>
               <div className="text-right">
                 <span className="text-xs text-gray-400 line-through mr-2 font-mono">
-                  ${activeLook.bundlePrice.toFixed(2)}
+                  ₹{activeLook.bundlePrice.toLocaleString('en-IN')}
                 </span>
                 <span className="text-xl font-black font-mono text-black">
-                  ${activeLook.discountPrice.toFixed(2)}
+                  ₹{activeLook.discountPrice.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
@@ -1032,7 +1032,7 @@ export default function RunwayStage({
                     {pin.id}
                   </span>
                   <span className="text-xs font-bold text-gray-900">{pin.product.name}</span>
-                  <span className="text-xs font-mono text-gray-600">${pin.product.price}</span>
+                  <span className="text-xs font-mono text-gray-600">₹{pin.product.price.toLocaleString('en-IN')}</span>
                 </div>
               ))}
             </div>
