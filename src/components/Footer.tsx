@@ -36,18 +36,29 @@ export default function Footer() {
           {/* Links columns */}
           <div className="lg:col-span-4 grid grid-cols-2 gap-4">
             <div>
-              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-4">Menu</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-4">Spatial & Catalog</h4>
               <ul className="space-y-2">
-                {['Men', 'Women', 'Accessories'].map(link => (
-                  <li key={link}><Link href={`/collections/${link.toLowerCase()}`} className="text-gray-500 text-[13px] hover:text-black transition-colors font-semibold">{link}</Link></li>
+                {[
+                  { name: 'Runway 3D', href: '/runway' },
+                  { name: 'Digital Wardrobe', href: '/wardrobe' },
+                  { name: 'Brand Manual', href: '/brand-manual' },
+                  { name: "Men's Collection", href: '/collections/mens' },
+                  { name: "Women's Collection", href: '/collections/womens' },
+                ].map(link => (
+                  <li key={link.name}><Link href={link.href} className="text-gray-500 text-[13px] hover:text-black transition-colors font-semibold">{link.name}</Link></li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-4">Support</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-4">Support & Lab</h4>
               <ul className="space-y-2">
-                {['Shipping', 'Returns', 'Stores', 'Contact', 'About Us'].map(link => (
-                  <li key={link}><Link href={link === 'About Us' ? '/about' : '#'} className="text-gray-500 text-[13px] hover:text-black transition-colors font-semibold">{link}</Link></li>
+                {[
+                  { name: 'AI Studio', href: '/avatar-studio' },
+                  { name: 'Shipping & Returns', href: '#' },
+                  { name: 'About Atelier', href: '/about' },
+                  { name: 'Security & Auth', href: '/profile/security' },
+                ].map(link => (
+                  <li key={link.name}><Link href={link.href} className="text-gray-500 text-[13px] hover:text-black transition-colors font-semibold">{link.name}</Link></li>
                 ))}
               </ul>
             </div>

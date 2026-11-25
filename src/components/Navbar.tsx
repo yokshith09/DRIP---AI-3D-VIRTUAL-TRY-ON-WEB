@@ -36,28 +36,29 @@ export default function Navbar() {
           </Link>
         </div>
         
-        <nav className="hidden lg:flex items-center space-x-7">
-          {['MEN', 'WOMEN', 'ACCESSORIES', 'RUNWAY', 'AI STUDIO'].map((item) => (
+        <nav className="hidden lg:flex items-center space-x-6">
+          {[
+            { label: 'MEN', href: '/collections/mens' },
+            { label: 'WOMEN', href: '/collections/womens' },
+            { label: 'ACCESSORIES', href: '/collections/accessories' },
+            { label: 'RUNWAY', href: '/runway', badge: '3D' },
+            { label: 'WARDROBE', href: '/wardrobe', badge: 'RAIL' },
+            { label: 'BRAND MANUAL', href: '/brand-manual' },
+            { label: 'AI STUDIO', href: '/avatar-studio' },
+          ].map((item) => (
             <Link 
-              key={item} 
-              href={
-                item === 'RUNWAY' ? '/runway' :
-                item === 'AI STUDIO' ? '/avatar-studio' : 
-                item === 'MEN' ? '/collections/mens' :
-                item === 'WOMEN' ? '/collections/womens' :
-                item === 'ACCESSORIES' ? '/collections/accessories' :
-                '/category'
-              } 
-              className={`text-[14px] font-sans font-medium transition-colors ${
-                item === 'RUNWAY'
-                  ? 'text-black font-semibold flex items-center gap-1.5'
-                  : 'text-gray-800 hover:text-black'
+              key={item.label} 
+              href={item.href}
+              className={`text-[13px] font-sans font-medium transition-colors flex items-center gap-1.5 ${
+                item.badge
+                  ? 'text-black font-semibold'
+                  : 'text-gray-700 hover:text-black'
               }`}
             >
-              {item}
-              {item === 'RUNWAY' && (
+              {item.label}
+              {item.badge && (
                 <span className="text-[9px] bg-black text-white px-1.5 py-0.5 rounded tracking-widest uppercase font-mono">
-                  3D
+                  {item.badge}
                 </span>
               )}
             </Link>
