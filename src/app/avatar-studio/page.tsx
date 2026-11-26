@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -22,7 +22,7 @@ import {
   Eye
 } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useProductStore } from '@/store/products';
 import { useCartStore } from '@/store/cart';
@@ -31,10 +31,16 @@ const PRESET_AVATARS = [
   { id: 'alex', name: 'Alex', gender: 'Male Avatar', image: '/mens_cover.png', tag: 'Slim Athletic' },
   { id: 'sophia', name: 'Sophia', gender: 'Female Avatar', image: '/womens_cover.png', tag: 'Classic Fit' },
   { id: 'kai', name: 'Kai', gender: 'Streetwear Model', image: '/images/hero/luxury_hero_vton.png', tag: 'Relaxed Silhouette' },
+  { id: 'runway-1', name: 'Runway Look 1', gender: 'Runway Model', image: 'https://reel-ref-try-the-look.vercel.app/assets/model-1-640.webp', tag: 'The City Edit' },
+  { id: 'runway-5', name: 'Runway Look 2', gender: 'Runway Model', image: 'https://reel-ref-try-the-look.vercel.app/assets/model-5-640.webp', tag: 'Gallery Opening' },
+  { id: 'runway-4', name: 'Runway Look 3', gender: 'Runway Model', image: 'https://reel-ref-try-the-look.vercel.app/assets/model-4-640.webp', tag: 'Earth Tones' },
+  { id: 'runway-6', name: 'Runway Look 4', gender: 'Runway Model', image: 'https://reel-ref-try-the-look.vercel.app/assets/model-6-640.webp', tag: 'Studio Day' },
 ];
 
-export default function AvatarStudio() {
+function AvatarStudioInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const targetProductId = searchParams.get('product');
   const supabase = createClient();
   const [step, setStep] = useState<'INTRO' | 'SCANNING' | 'STUDIO'>('STUDIO');
   const [progress, setProgress] = useState(0);
@@ -47,7 +53,7 @@ export default function AvatarStudio() {
   const [fittingStatus, setFittingStatus] = useState<'idle' | 'processing' | 'done' | 'error'>('idle');
   const [fitError, setFitError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'fitted' | 'original'>('fitted');
-  const [filterCategory, setFilterCategory] = useState<'all' | 'mens' | 'womens' | 'accessories' | 'imports'>('all');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'runway' | 'mens' | 'womens' | 'accessories' | 'imports'>('all');
   
   const [showImportModal, setShowImportModal] = useState(false);
   const [showAvatarSwitcher, setShowAvatarSwitcher] = useState(false);
@@ -217,10 +223,36 @@ export default function AvatarStudio() {
 
   const { products } = useProductStore();
   const allClosetProducts = [...products, ...importedProducts];
-  const filteredProducts = allClosetProducts.filter((p) => {
+
+  // Prioritize 3D Runway collection items at the front of the studio wardrobe
+  const sortedClosetProducts = [...allClosetProducts].sort((a, b) => {
+    const aIsRunway = a.id.startsWith('dr-') ? 1 : 0;
+    const bIsRunway = b.id.startsWith('dr-') ? 1 : 0;
+    return bIsRunway - aIsRunway;
+  });
+
+  const filteredProducts = sortedClosetProducts.filter((p) => {
     if (filterCategory === 'all') return true;
+    if (filterCategory === 'runway') {
+      return p.id.startsWith('dr-') || p.tags?.includes('runway') || p.brand === 'DRIP Atelier' || p.brand === 'DRIP Footwear';
+    }
     return p.category === filterCategory;
   });
+
+  // Automatically select and drape garment if passed via ?product=...
+  useEffect(() => {
+    if (targetProductId && products.length > 0) {
+      const match = products.find(p => p.id === targetProductId);
+      if (match) {
+        setActiveProduct(match);
+        triggerFitting(match);
+        if (match.id.startsWith('dr-')) {
+          setFilterCategory('runway');
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetProductId, products]);
 
   const displayImage = viewMode === 'fitted' && fittedResult ? fittedResult : baseImage;
 
@@ -429,7 +461,7 @@ export default function AvatarStudio() {
             
             {/* Category tabs */}
             <div className="flex border-b border-white/10 text-[9px] font-black uppercase tracking-widest overflow-x-auto hide-scrollbar shrink-0 bg-white/5">
-              {['all', 'mens', 'womens', 'accessories', 'imports'].map((cat) => (
+              {['all', 'runway', 'mens', 'womens', 'accessories', 'imports'].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setFilterCategory(cat as any)}
@@ -437,7 +469,7 @@ export default function AvatarStudio() {
                     filterCategory === cat ? 'border-drip-coral text-white bg-white/5' : 'border-transparent text-white/40 hover:text-white'
                   }`}
                 >
-                  {cat === 'imports' ? 'Custom Imports' : cat}
+                  {cat === 'imports' ? 'Custom Imports' : cat === 'runway' ? '3D Runway' : cat}
                 </button>
               ))}
             </div>
@@ -546,5 +578,13 @@ export default function AvatarStudio() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function AvatarStudio() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-drip-navy flex items-center justify-center text-white/50 text-xs font-mono">LOADING STUDIO...</div>}>
+      <AvatarStudioInner />
+    </Suspense>
   );
 }

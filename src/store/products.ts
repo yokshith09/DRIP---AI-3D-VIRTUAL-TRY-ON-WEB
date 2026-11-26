@@ -27,7 +27,19 @@ export const useProductStore = create<ProductStore>()(
       resetProducts: () => set({ products: STATIC_PRODUCTS })
     }),
     {
-      name: 'drip-products-catalog-v4'
+      name: 'drip-products-catalog-v5',
+      merge: (persistedState: any, currentState) => {
+        // Ensure static runway and catalog products are always up to date
+        const persistedProducts = persistedState?.products || [];
+        const staticMap = new Map(STATIC_PRODUCTS.map(p => [p.id, p]));
+        
+        // Merge persisted custom/imported products with updated static catalog
+        const customProducts = persistedProducts.filter((p: Product) => !staticMap.has(p.id));
+        return {
+          ...currentState,
+          products: [...STATIC_PRODUCTS, ...customProducts],
+        };
+      }
     }
   )
 );
